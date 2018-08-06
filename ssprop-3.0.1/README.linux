@@ -1,0 +1,47 @@
+NOTES ON USING AND RECOMPILING SSPROPC UNDER LINUX
+
+sspropc and the associated FFTW libraries were compiled using gcc
+version 3.4.4 and Matlab version 7.0.4
+
+In order to use the program, you must ensure that Matlab is using
+the standard C libraries that are appropriate for this gcc version
+3.4.4.  Matlab is by default distributed with older (version 3.2)
+versions of these run-time libraries, which will not work with
+mex files compiled with later versions of GCC.  Unfortunately,
+Matlab will try to use the older library files instead of looking
+for newer versions installed on your system.
+
+There are three solutions to this problem:
+
+(1) Matlab uses the run-time library file libgcc_s.so.1, which is
+    located in matlab program directory, under a subdirectory
+    called "glnx86"  There is a README file located in this same
+    directory that explains how to replace the library file with the
+    latest version that is appropriate for your system.  If you
+    follow these instructions, then you should be able to run and
+    recompile sspropc.
+
+(2) If you do not want to tinker with files in the Matlab
+    installation directories, you may also manually force Matlab
+    to load the newer library files prior to execution.  From the
+    shell used to launch Matlab, execute the following commands:
+
+    setenv LD_PRELOAD /usr/local/gcc/lib/current/libgcc_s.so.1
+    setenv LD_DIRECTORY_PATH /usr/local/gcc/lib
+    matlab &
+
+    Note: you may need to change the paths in the above commands
+    if your system keeps the gcc libraries in a different
+    location.
+
+(3) Recompile the FFTW libraries and sspropc using an older
+    version of gcc (version 3.2.3 is the version that is
+    officially used by Matlab 7.0)
+
+
+Here are some links that explain the problem:
+
+http://newsreader.mathworks.com/WebX?14@897.haBVadZUNP2.0@.eef9f93
+http://newsreader.mathworks.com/WebX?14@4.06Gca2cbD7k.0@.eeee1ce
+http://newsreader.mathworks.com/WebX?14@173.UC6uaFvE2co.0@.ef10671
+
