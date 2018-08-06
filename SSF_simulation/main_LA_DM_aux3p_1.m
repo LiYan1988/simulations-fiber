@@ -26,7 +26,7 @@ param.No = 2048/param.Nsc; %Overlapped symbols(deve essere pari) per ogni subcar
 param.imod = 1;           %Modulation format (0=CW,1=GAUSS,2=Const.Env.Unif.Phase,3=BPSK,4=QPSK,5=16-QAM, 6=64-QAM)
 param.imodw = 1;          %Modulation_format_interferenti_WDM (0=CW,1=GAUSS,2=Const.Env.Unif.Phase,3=BPSK,4=QPSK,5=16-QAM, 6=64-QAM)
 
-param.Nspan = 60;         %Numero di tratte
+param.Nspan = 2;         %Numero di tratte
 param.dc = 1;             %Inline dispersion compensation (0=no,1=DCF,2=ideal-per-channel)
 
 %* Noise

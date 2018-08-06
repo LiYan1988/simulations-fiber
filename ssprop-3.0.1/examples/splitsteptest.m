@@ -23,7 +23,7 @@ gamma = 1;                   % nonlinearity coefficient
 u0 = exp(-t.^2);             % input pulse (Gaussian)
 
 tic;
-u = sspropc(u0,dt,dz,nz,alpha,betap,gamma);   % propagate signal
+u = ssprop(u0,dt,dz,nz,alpha,betap,gamma);   % propagate signal
 toc;
 
 subplot(211);

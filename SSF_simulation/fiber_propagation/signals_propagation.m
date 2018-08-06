@@ -17,13 +17,15 @@ Bu = param.Bu;              %Banda segnale osservato = spaziatura WDM [Ghz]
 
 pol = param.pol;            %Polarization division multiplexing (1:no, 2:si)
 
+%***************************** For sweeping power for different simulations
 Npunti = param.Npunti;      %Number of power values to be considered
 Pu1dB =  param.Pu1dB;       %Potenza segnale osservato in SMF [dBm] (singola polarizzazione)
-Pinc = param.Pinc;          %Potenza segnale osservato in SMF - increment
+Pinc = param.Pinc;          %Potenza segnale osservato in SMF - increment in [dBm]
 Pu2dB = param.Pu2dB;        %Potenza segnale osservato in DCF [dBm]
+%*****************************
 
 Nch = param.Nch;            %Numero totale canali WDM
-Nsc = param.Nsc;            %Numero di sottoportanti
+Nsc = param.Nsc;            %Numero di sottoportanti, number of subcarriers
 Nu = param.Nu;              %Number of symbols(deve essere pari) per ogni subcarrier
 No = param.No;              %Overlapped symbols(deve essere pari) per ogni subcarrier
 
@@ -46,7 +48,7 @@ ramg2 = param.ramg2;        %2 Amp.
 alpha1 = param.alpha1;      %Attenuazione SMF [dB/Km]
 D1 = param.D1;              %Dispersione SMF [ps/nm/Km]
 gm1 = param.gm1;            %Coefficiente nonlineare SMF [(W*m)^-1]
-elle1 = param.elle1;        %Lunghezza SMF [Km]
+elle1 = param.elle1;        %Lunghezza SMF [Km], SMF fiber length
 
 %* DCF fiber coefficients (or per-channel disperion compensation)
 alpha2 = param.alpha2;      %Attenuazione DCF [dB/Km]
@@ -55,11 +57,11 @@ gm2 = param.gm2;            %Coefficiente nonlineare DCF [(W*m)^-1]
 elle2 = param.elle2;        %Lunghezza DCF [Km]
 
 %*** SSFM accuracy parameters ***
-Nz1f = param.Nz1f;          %Numero di passi per span SMF (fw.pr.)
+Nz1f = param.Nz1f;          %Numero di passi per span SMF (fw.pr.) number of steps per SMF span in forward propagation
 Nz1b = param.Nz1b;          %Numero di passi per span SMF (back. prop.)
 Nz2f = param.Nz2f;          %Numero di passi per span DCF (fw.pr.)
 Nz2b = param.Nz2b;          %Numero di passi per span DCF (back. prop.)
-exbwf = param.exbwf;        %Fattore di sovracampionamento (banda in eccesso) del segnale WDM (fw.pr.)
+exbwf = param.exbwf;        %Fattore di sovracampionamento (banda in eccesso) del segnale WDM (fw.pr.), Excessampling factor (excess band) of the WDM signal (fw.pr.), oversampling factor
 
 %* Backpropagation
 bp = param.bp;             %Backpropagation (0=EDC only,1=ideal)
@@ -83,7 +85,7 @@ iv = 0;                     %Mode verbose
 %**************************************************************************
 %*  Inizializza variabili
 %**************************************************************************
-Nusc = Nu*Nsc;
+Nusc = Nu*Nsc; % total number of frequency points in one channel
 sg = 1/sqrt(Nsc);
 snr0dB = zeros(Npunti,1);
 
@@ -106,21 +108,29 @@ for ip=1:Npunti
     %** Parametri di propagazione: potenze, attenuazioni, rotazioni, ...
     
     %* Potenza canale osservato all'ingresso di SMF e DCF
+    % channel power observed at input of SMF or DCF
     Pu1=10^((Pu1dB)/10);
     Pu2=10^((Pu2dB)/10);
     
     %* Attenuazione totale
-    A1dB  = alpha1;
-    at1 = log(10)*A1dB/10; %[1/km]
-    a1 = at1*elle1;
+    % SMF attenuation
+    A1dB  = alpha1; % [dB/Km]
+    at1 = log(10)*A1dB/10; %[1/km], convert alpha from dB to linear
+    a1 = at1*elle1; % attenuation of SMF fiber
+    % DCF attenuation
     A2dB = alpha2;
     at2 = log(10)*A2dB/10;
     a2 = at2*elle2;
     
     %* Dispersione intera tratta (coeff. (2*pi)^2*beta_2*L/2 in [ns^2])
+    % Full dispersion
+    % GVD in SMF [ns^/km]
     b1 = -D1*lambda^2/(clight*2*pi);
+    % GVD in DCF [ns^/km]
     b2 = -D2*lambda^2/(clight*2*pi); %[ns^2/km]
+    % full dispersion in SMF
     bt1 = b1*elle1*2*pi^2;
+    % full dispersion in DCF
     bt2 = b2*elle2*2*pi^2;
     
     %* Coefficiente non-lineare intera tratta normalizzato a Pu1
@@ -130,14 +140,17 @@ for ip=1:Npunti
     gm02 = gmp2*elle2;
     
     %* Lunghezza spezzoni normalizzata forward propagation
+    % normalized length of each step in SMF or DCF
     dz1f = 1/Nz1f;
     dz2f = 1/Nz2f;
     
     %* Lunghezza spezzoni normalizzata backward propagation
+    % normalized step length per step in backward propagation
     dz1b = 1/Nz1b;
     dz2b = 1/Nz2b;
     
     %* Dispersione per spezzone (coeff. (2*pi)^2*beta_2*dz/2 in [ns^2])
+    % dispersion in each step
     %  forward propagation
     bdz1f = bt1*dz1f;
     bdz2f = bt2*dz2f;
@@ -148,7 +161,9 @@ for ip=1:Npunti
     bdz2b = -bt2*dz2b;
     
     %* Non-linearita efficace (nel primo/ultimo spezzone per fw./bw.pr.)
-    if (abs(a1) > 1e-10)
+    % nonlinearity per step
+    %What does these mean?
+    if (abs(a1) > 1e-10) % if total power loss is significant
         ge1f = gm01*(1-exp(-a1*dz1f))/a1;
         ge1b = -gm01*(1-exp(-a1*dz1b))/a1;
     else
@@ -174,29 +189,30 @@ for ip=1:Npunti
     else
         fi2 = gm02;
     end
-    fispm = (fi1+fi2)*Nspan;
-    fixpm = 2*fispm*(Nch-1);
+    fispm = (fi1+fi2)*Nspan; % phase rotation due to SPM? why?
+    fixpm = 2*fispm*(Nch-1); % phase rotation due to XPM? why?
     
     %* Parametri dell'espansione: bande, tempi e numero di punti
-    Bw = Nch*Bu;         %Banda totale WDM (Nch canali di banda Bu)
-    Nw = Nusc*Nch;       %Numero totale di componenti nella banda del segnale WDM
-    Ttot = Nusc/Bu;      %Intervallo temporale di espansione
-    df = 1/Ttot;         %Intervallo frequenziale tra le componenti dell'espansione
+    % Expansion parameters: bands, times and number of points
+    Bw = Nch*Bu;         %Banda totale WDM (Nch canali di banda Bu), total WDM bandwidth
+    Nw = Nusc*Nch;       %Numero totale di componenti nella banda del segnale WDM, total number of frequency points
+    Ttot = Nusc/Bu;      %Intervallo temporale di espansione, total time window
+    df = 1/Ttot;         %Intervallo frequenziale tra le componenti dell'espansione, frequency resolution
     
     %* Numero totale di componenti a frequenza positiva per l'espansione
     %* in serie dei segnali (la banda totale di espansione e' scelta
     %* maggiore della banda WDM di circa un fattore exbwf>=1, in modo da
     %* tener conto dell'aumento di banda dei segnali durante la
     %* propagazione nonlineare), fw.pr. e bw.pr.
-    Nt = 2^ceil(log2(exbwf*Nw));     %Numero di componenti espansione (fw.pr.)
+    Nt = 2^ceil(log2(exbwf*Nw));     %Numero di componenti espansione (fw.pr.), number of samples in simulation of forward propagation, consider oversampling rate, and make it 2^N
     Nbu = 2^ceil(log2(detbwb*Nusc));   %Numero di componenti espansione (bw.pr.)
     Nb = 2^ceil(log2(exbwb*Nbu));    %Numero di componenti espansione (bw.pr.)
     
     %* Varie grandezze utili nella costruzione e gestione dei vettori
     %* per la propagazione del segnale
-    Nchr = (Nch-1)/2; %Numero di canali dx rispetto CUT
-    Nchl = Nchr;      %Numero di canali sx rispetto CUT
-    if (chdet <= (Nchl+1))
+    Nchr = (Nch-1)/2; %Numero di canali dx rispetto CUT, number of channels at the right of CUT
+    Nchl = Nchr;      %Numero di canali sx rispetto CUT, number of channels at the left of CUT
+    if (chdet <= (Nchl+1)) 
         ich = chdet-1;
     else
         ich = chdet-Nch-1;
@@ -208,12 +224,13 @@ for ip=1:Npunti
     Not = No*Nt/Nusc;     %Campioni di overlap per segnale WDM
     No2 = No/2;         %Meta simboli di overlap (valido per ogni ch.)
     
-    %* Vettore frequenze
+    %* Vettore frequenze, vector frequency
     fnt = [0:df:(Nt2-1)*df -Nt2*df:df:-df]; %Banda totale
     fnb = [0:df:(Nb2-1)*df -Nb2*df:df:-df]; %Banda backward propagation
     fnu = [0:df:(Nusc2-1)*df -Nusc2*df:df:-df]; %Banda segnale osservato CUT
     
-    %* Alcuni parametri caratteristici del sistema
+    %* Alcuni parametri caratteristici del sistema, total accumulated
+    %dispersion
     if (dc==0)
         DLtot = Nspan*D1*elle1;            %Dispersione totale accumulata
         Toff = Nspan*abs(bt1)*Bw/pi;       %Walk-off temporale agli estremi della banda WDM
@@ -231,6 +248,7 @@ for ip=1:Npunti
     %* standard del rumore di fase (incrementi)
     
     %*  Densita' spettrale potenza (normal.) dell'ASE N0 e SNR per canale
+    % spectrum power density of ASE and SNR per channel
     if (ase_source == 0)  	   %lumped amplification
         GsuP = (exp(a1)-1)/Pu1;                        %Factor (G-1)/P
         if (dc > 0) 
@@ -289,6 +307,7 @@ for ip=1:Npunti
     
     % **********************************************************************
     % Costruzione dei vettori per propagazione in fibra
+    % construct of vector for propagation
     % **********************************************************************
     %* Dispersione in fibra per ogni passo, fw.pr.: H(fn,dz)
     F1f = fiber(bdz1f,0,fnt);
@@ -336,7 +355,7 @@ for ip=1:Npunti
     uit = zeros(Nu,Nch,Nsc,pol);
     
     if (noise == 2 || noise == 3)
-        Wnio = zeros(Nt,pol);          %Rumore AGWN-in/out
+        Wnio = zeros(Nt,pol);          %Rumore AGWN-in/out, noise AWGN
         wnio = zeros(Nt,pol);
     elseif (noise == 4)
         Wnln = zeros(Nt,Nspan,pol);    %Rumore in-line
@@ -585,4 +604,6 @@ for ip=1:Npunti
     %* Aggiorna parametri per simulazione successiva
     Pu1dB = Pu1dB+Pinc;
     Pu2dB = Pu2dB+Pinc;
+    
+    disp('done')
 end
