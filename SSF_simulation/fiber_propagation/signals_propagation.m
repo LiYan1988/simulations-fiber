@@ -124,7 +124,7 @@ for ip=1:Npunti
     
     %* Dispersione intera tratta (coeff. (2*pi)^2*beta_2*L/2 in [ns^2])
     % Full dispersion
-    % GVD in SMF [ns^/km]
+    % GVD in SMF [ns^2/km]
     b1 = -D1*lambda^2/(clight*2*pi);
     % GVD in DCF [ns^/km]
     b2 = -D2*lambda^2/(clight*2*pi); %[ns^2/km]
