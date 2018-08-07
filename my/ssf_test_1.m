@@ -30,7 +30,7 @@ t = dt*(-fn/2:fn/2-1);
 % wavelength = 1.55 [um]
 % speed_light = 2.99792458e5 [km/s]
 % beta2 = -D*wavelength^2/(speed_light*2*pi) [ns^2/km]
-distance = 10; % [km], span length
+distance = 100; % [km], span length
 beta2 = -2.1683e-05; % [ns^2/km], GVD
 gamma = 1.27e-3; % [(W*m)^-1], nonlinear coefficient of SMF 
 alpha = 0.2; % [dB/km], attenuation in dB
@@ -40,7 +40,7 @@ alpha = log(10)*alpha/10; % [1/km] in linear
 % --- Spatial parameters
 Ld = dt^2/abs(beta2)*1e18; % [km], dispersion distance
 % zn = round(20*distance/Ld/gamma^2); % Number of z steps
-zn = 1000;
+zn = 10000;
 dz = distance/zn; % [km], step size in z
 % ---
 
