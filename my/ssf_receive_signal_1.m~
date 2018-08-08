@@ -27,9 +27,9 @@ param.zn = 100; % number of steps per span
 % Channel specific parameters, n channels should have n sets of parameters
 N = 3; % number of channels, should be an odd number
 param.bandwidth_channel = 10*1e9*ones(1, N); % [Hz]
-param.bandwidth_channel((N-1)/2+1) = 32*1e9; % CUT
+% param.bandwidth_channel((N-1)/2+1) = 32*1e9; % CUT
 param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=QAM; 16=16QAM; 32=32QAM; 64=64QAM
-param.constellation_size((N-1)/2+1) = 16;
+% param.constellation_size((N-1)/2+1) = 16;
 param.center_frequency_channel = 50*1e9*(linspace(0, N-1, N)-(N-1)/2); 
 param.power_channel_time = 10^(-6/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
@@ -50,6 +50,13 @@ plot_current_signal(param, 'linear');
 
 P_t = norm(param.data_mod_t_in)^2/param.fn;
 P_f = norm(param.data_mod_f_in)^2/(param.fn*param.dt);
+
 %% Split Step Fourier 
 param = split_step_single_polarization(param);
 plot_current_signal(param, 'linear')
+
+%% Receive Signal
+x = param.data_mod_t_current;
+
+%%
+f1 = 

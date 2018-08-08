@@ -10,11 +10,9 @@ dt = pi/fmax; % s
 tmax = pi/df; % s
 t = -tmax:dt:tmax-dt;
 xt = cos(2*pi*10*t);
-% Fourier transform
 xf = fftshift(fft(fftshift(xt)))/fn/sqrt(df/(2*pi));
-% Inverse Fourier transform
 xt2 = fftshift(ifft(fftshift(xf)))*fn*sqrt(df/(2*pi));
-xf2 = fftshift(fft(fftshift(xt2)))/fn/sqrt(df/(2*pi));
+xf2 = fftshift(ifft(fftshift(xt2)))/fn/sqrt(df/(2*pi));
 figure;
 subplot(2, 1, 1)
 plot(t, xt)
@@ -25,14 +23,9 @@ plot(f/(2*pi), abs(xf))
 hold on;
 plot(f/(2*pi), abs(xf2))
 
-Pt = norm(xt)^2/fn;
-Pf = norm(xf)^2*df/(2*pi);
-Pt2 = norm(xt2)^2/fn;
-Pf2 = norm(xf2)^2*df/(2*pi);
-disp(Pf)
-disp(Pt)
-disp(Pf2)
-disp(Pt2)
+P_t = norm(xt)^2/fn;
+P_f = norm(xf)^2*df/(2*pi);
+disp(P_f/P_t)
 %%
 % M = 25;
 % px = zeros(1, M);
