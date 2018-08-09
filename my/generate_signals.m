@@ -1,7 +1,8 @@
 function param = generate_signals(param)
 % Generate signals
 param.df = 2*param.fmax/param.fn; % [Hz], frequency resolution
-param.f = param.df*[(0:param.fn/2-1) (-param.fn/2:-1)]';
+% param.f = param.df*[(0:param.fn/2-1) (-param.fn/2:-1)]';
+param.f = (-param.fn/2:param.fn/2-1)'*param.df;
 
 % Time domain parameters
 param.tmax = pi/param.df; % [s]
@@ -70,10 +71,11 @@ for c = 1:param.channel_number
 end
 
 % Fourier transform of waveform
-% param.data_mod_f_in = fftshift(ifft(param.data_mod_t_in)).*(param.fn*param.dt)/sqrt(2*pi);
-param.data_mod_f_in = fftshift(ifft(param.data_mod_t_in))*sqrt(param.fn*param.dt);
+% param.data_mod_f_in = fftshift(ifft(param.data_mod_t_in))*sqrt(param.fn*param.dt);
+param.data_mod_f_in = ft(param.data_mod_t_in, param.fn, param.df);
 % f axis for plotting the spectrum, unit is [GHz]
-param.f_plot = fftshift(param.f)/(2*pi)/1e9;
+% param.f_plot = fftshift(param.f)/(2*pi)/1e9;
+param.f_plot = param.f/(2*pi)/1e9;
 
 % Time axis for plotting the spectrum, unit is [mus], microsecond
 param.t_plot = param.t*1e6; 
