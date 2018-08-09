@@ -3,6 +3,11 @@ function param = generate_signals(param)
 param.df = 2*param.fmax/param.fn; % [Hz], frequency resolution
 % param.f = param.df*[(0:param.fn/2-1) (-param.fn/2:-1)]';
 param.f = (-param.fn/2:param.fn/2-1)'*param.df;
+% f axis for plotting the spectrum, unit is [GHz]
+param.f_plot = param.f/(2*pi)/1e9;
+% frequency mask as a low-pass filter
+param.f_mask = (param.f<2*pi*param.spectrum_grid_size/2)&(param.f>-2*pi*param.spectrum_grid_size/2);
+
 
 % Time domain parameters
 param.tmax = pi/param.df; % [s]
@@ -13,8 +18,8 @@ param.dz = param.span_length/param.zn; % [km], step size in z
 param.dz_eff = (1-exp(-param.alpha*param.dz))/param.alpha; % [km], effective length of one step, used in the nonlinear component of SSF
 
 % Channel specific parameters
-param.channel_number = length(param.constellation_size);
 param.sample_per_symbol = ceil(param.fmax/pi./param.bandwidth_channel);
+param.channel_number = length(param.constellation_size);
 param.symbol_number = floor(param.fn./param.sample_per_symbol);
 param.bit_per_symbol = log2(param.constellation_size);
 
@@ -60,6 +65,7 @@ for c = 1:param.channel_number
     % Overhead needs to be removed at the start and end of signal
     length_overhead = length(data_mod_t_tmp)-length(param.t);
     data_mod_t_tmp = data_mod_t_tmp(delay_filter+1:end-length_overhead+delay_filter);
+    data_mod_t_tmp = ift(ft(data_mod_t_tmp,param.df).*param.f_mask,param.df);
     data_mod_t_tmp = data_mod_t_tmp.*exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
     
     % Assign power to the signal
@@ -70,12 +76,13 @@ for c = 1:param.channel_number
     param.data_mod_t_in = param.data_mod_t_in+data_mod_t_tmp;
 end
 
+% Delay of each filter
+param.filter_delay = param.symbol_in_filter/2.*param.sample_per_symbol;
+
+
 % Fourier transform of waveform
 % param.data_mod_f_in = fftshift(ifft(param.data_mod_t_in))*sqrt(param.fn*param.dt);
-param.data_mod_f_in = ft(param.data_mod_t_in, param.fn, param.df);
-% f axis for plotting the spectrum, unit is [GHz]
-% param.f_plot = fftshift(param.f)/(2*pi)/1e9;
-param.f_plot = param.f/(2*pi)/1e9;
+param.data_mod_f_in = ft(param.data_mod_t_in, param.df);
 
 % Time axis for plotting the spectrum, unit is [mus], microsecond
 param.t_plot = param.t*1e6; 

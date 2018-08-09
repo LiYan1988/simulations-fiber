@@ -1,3 +1,3 @@
-function xt = ift(xf, fn, df)
+function xt = ift(xf, df)
 % Inverse Fourier transform
-xt = fftshift(ifft(fftshift(xf)))*fn*sqrt(df/(2*pi));
+xt = fftshift(fft(fftshift(xf)))*sqrt(df/(2*pi));

@@ -2,7 +2,7 @@ clc;
 clear;
 close all;
 
-S = 1e6; % nubmer of symbols
+S = 1e3; % nubmer of symbols
 M = 16;
 symbols = qammod(randi([0, M-1], S, 1), M);
 
@@ -16,11 +16,16 @@ rrc1 = rcosdesign(roll_off, span, sps);
 txSig1 = upfirdn(symbols, rrc1, sps, 1);
 
 % This method can remove overheads of filter and upsampling, good!
-rrc2 = comm.RaisedCosineTransmitFilter('Shape','Square root', ...
+rrc2 = comm.RaisedCosineTransmitFilter('Shape','Normal', ...
     'RolloffFactor',roll_off, ...
     'FilterSpanInSymbols',span, ...
     'OutputSamplesPerSymbol',sps, 'Gain', sps);
 txSig = rrc2(symbols);
+
+x = reshape(txSig, sps, [])';
+
+%% 
+plot(x(span/2+1:end, 1), '.')
 
 %% Constellation diagram
 % scatterplot(txSig(sps*(span/2)+1:end), sps)
@@ -28,16 +33,16 @@ txSig = rrc2(symbols);
 %% Simple shift
 
 %% 
-rrc3 = comm.RaisedCosineReceiveFilter('InputSamplesPerSymbol',sps, ...
-    'DecimationFactor',1, ...
-    'Shape', 'Square root', ...
-    'RolloffFactor', roll_off,...
-    'FilterSpanInSymbols', span, 'Gain', 1/sps, ...
-    'DecimationOffset', 0);
-rxSig = rrc3(txSig);
-
-a = reshape(rxSig, sps, []);
-plot(a)
+% rrc3 = comm.RaisedCosineReceiveFilter('InputSamplesPerSymbol',sps, ...
+%     'DecimationFactor',1, ...
+%     'Shape', 'Square root', ...
+%     'RolloffFactor', roll_off,...
+%     'FilterSpanInSymbols', span, 'Gain', 1/sps, ...
+%     'DecimationOffset', 0);
+% rxSig = rrc3(txSig);
+% 
+% a = reshape(rxSig, sps, []);
+% plot(a)
 
 % delay = rrc3.FilterSpanInSymbols;
 

@@ -11,13 +11,13 @@ uu = param.data_mod_t_current;
 temp = uu.*exp(abs(uu).^2.*param.hhz/2); % note hhz/2
 for n=1:param.zn
     % dispersion
-    uu = ift(ft(temp, param.fn, param.df).*param.dispersion, param.fn, param.df);
+    uu = ift(ft(temp, param.df).*param.dispersion, param.df);
     % nonlinearity and loss
     temp = uu.*exp(abs(uu).^2.*param.hhz).*exp(-0.5*param.alpha*param.dz);
 end
 uu = temp.*exp(-abs(uu).^2.*param.hhz/2); % Final field
 % temp = fftshift(ifft(uu)).* (param.fn*param.dt)/sqrt(2*pi); % Final spectrum
-temp = ft(uu, param.fn, param.df);
+temp = ft(uu, param.df);
 
 % 
 param.data_mod_t_current = uu;

@@ -11,10 +11,10 @@ tmax = pi/df; % s
 t = -tmax:dt:tmax-dt;
 xt = cos(2*pi*10*t);
 % Fourier transform
-xf = fftshift(fft(fftshift(xt)))/fn/sqrt(df/(2*pi));
+xf = fftshift(ifft(fftshift(xt)))/sqrt(df/(2*pi));
 % Inverse Fourier transform
-xt2 = fftshift(ifft(fftshift(xf)))*fn*sqrt(df/(2*pi));
-xf2 = fftshift(fft(fftshift(xt2)))/fn/sqrt(df/(2*pi));
+xt2 = fftshift(fft(fftshift(xf)))*sqrt(df/(2*pi));
+xf2 = fftshift(ifft(fftshift(xt2)))/sqrt(df/(2*pi));
 figure;
 subplot(2, 1, 1)
 plot(t, xt)
