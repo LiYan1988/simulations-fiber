@@ -2,6 +2,8 @@ clc;
 clear;
 close all;
 
+% Wrap SSF and signal generation in functions and test.
+
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*400*1e9; % [Hz]

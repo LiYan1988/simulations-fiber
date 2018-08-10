@@ -2,6 +2,8 @@ clc;
 clear;
 close all;
 
+% Generate WDM channels with different parameters
+
 %% Parameters
 
 % -------------- Primary parameters

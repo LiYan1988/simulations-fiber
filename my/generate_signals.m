@@ -15,7 +15,12 @@ param.dt = 2*param.tmax/param.fn;
 param.t = param.dt*(-param.fn/2:param.fn/2-1)';
 
 param.dz = param.span_length/param.zn; % [km], step size in z
-param.dz_eff = (1-exp(-param.alpha*param.dz))/param.alpha; % [km], effective length of one step, used in the nonlinear component of SSF
+% effective length of one step, used in the nonlinear component of SSF
+if param.alpha>0
+    param.dz_eff = (1-exp(-param.alpha*param.dz))/param.alpha; % [km],
+else
+    param.dz_eff = 0; % [km],
+end
 
 % Channel specific parameters
 param.sample_per_symbol = ceil(param.fmax/pi./param.bandwidth_channel);
@@ -69,7 +74,7 @@ for c = 1:param.channel_number
     data_mod_t_tmp = data_mod_t_tmp.*exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
     
     % Assign power to the signal
-    power_normalized = norm(data_mod_t_tmp)^2/param.fn; % normalized power 
+    power_normalized = norm(data_mod_t_tmp)^2/param.fn; % normalized power
     data_mod_t_tmp = data_mod_t_tmp*sqrt(param.power_channel_time(c)/power_normalized);
     param.data_mod_t_channel{c} = data_mod_t_tmp;
     
@@ -85,7 +90,7 @@ param.filter_delay = param.symbol_in_filter/2.*param.sample_per_symbol;
 param.data_mod_f_in = ft(param.data_mod_t_in, param.df);
 
 % Time axis for plotting the spectrum, unit is [mus], microsecond
-param.t_plot = param.t*1e6; 
+param.t_plot = param.t*1e6;
 
 % current signal
 param.data_mod_t_current = param.data_mod_t_in;

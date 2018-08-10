@@ -1,4 +1,4 @@
-function [xt, xp] = downconvert(param, cidx, mode)
+function [xt, xp, padding_length] = downconvert(param, cidx, mode)
 % Downconvert cidx-th channel to baseband and low-pass filter
 % Return baseband signal, xt, and samples xp
 

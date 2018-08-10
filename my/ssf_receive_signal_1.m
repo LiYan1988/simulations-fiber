@@ -2,6 +2,8 @@ clc;
 clear;
 close all;
 
+% Receive signal in back-to-back scenario
+
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*400*1e9; % [Hz]

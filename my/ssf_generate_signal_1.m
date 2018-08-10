@@ -2,6 +2,8 @@ clc;
 clear;
 close all;
 
+% Try split step Fourier with a pulse in this file.
+
 % --- Frequency parameters
 % 400 GHz frequency span, frequency axis is [-fmax:fmax-df]/(2*pi)
 % fmax is the maximum frequency on one side, the frequency window is 2*fmax

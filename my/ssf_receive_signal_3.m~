@@ -2,15 +2,18 @@ clc;
 clear;
 close all;
 
+% Wrap downconversion in back-to-back transission, can obtain good
+% constellation diagram for any channel.
+
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*400*1e9; % [Hz]
-param.fn = 2^20; % number of spectrum points
+param.fn = 2^22; % number of spectrum points
 
 param.span_length = 10; % [km], span length
 param.beta2 = -2.1683e-05; % [ns^2/km], GVD
-param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
-param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
+param.gamma = 0*1.27; % [(W*km)^-1], nonlinear coefficient of SMF
+param.alpha = 0*log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
 param.zn = 100; % number of steps per span
 
 %% Channel Parameters
@@ -23,7 +26,7 @@ param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=8QAM; 16=16QAM; 32=
 param.constellation_size((N-1)/2+1) = 16;
 param.spectrum_grid_size = 50*1e9; % [Hz], spectrum grid size
 param.center_frequency_channel = param.spectrum_grid_size*(linspace(0, N-1, N)-(N-1)/2);
-param.power_channel_time = [1:N]*1e-3; % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
+param.power_channel_time = 10^(-6/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
 % Filter parameters of each channel, assume raised cosine filters
 param.roll_off_filter = 0.1*ones(1, N); % Roll-off factor of raised cosine filter
@@ -38,13 +41,21 @@ param.random_seed = 2394759; % input to rng
 param = generate_signals(param);
 
 %% Split Step Fourier
-% param = split_step_single_polarization(param);
+param = split_step_single_polarization(param);
 % plot_current_signal(param, 'linear')
 
 %% Plot Transmitted Signal
-cidx = 5; % index of the channel to display
+% cidx = (N-1)/2+1; % index of the channel to display
+cidx = 3;
+[xt, xp, ~] = downconvert(param, cidx, 'current');
+scatterplot(xp(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
 
-[xt, xp] = downconvert(param, cidx);
-scatterplot(xp(1, :))
+%% Compensate for Dispersion
+% Method 1, back
+param.beta2 = -param.beta2;
+param = split_step_single_polarization(param);
 
 %% 
+cidx = 3;
+[xt2, xp2, ~] = downconvert(param, cidx, 'current');
+scatterplot(xp2(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))

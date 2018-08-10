@@ -41,20 +41,39 @@ param.random_seed = 2394759; % input to rng
 param = generate_signals(param);
 
 %% Split Step Fourier
-% param = split_step_single_polarization(param);
+param = split_step_single_polarization(param);
 % plot_current_signal(param, 'linear')
 
 %% Plot Transmitted Signal
 % cidx = (N-1)/2+1; % index of the channel to display
 cidx = 3;
-[xt, xp, padding_length] = downconvert(param, cidx, 'current');
-scatterplot(xp(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
-% 
-% %% 
-% yt = xt.*(param.dispersion).^(-param.zn);
-% yp = [yt; zeros(padding_length, 1)];
-% yp = reshape(yp, param.sample_per_symbol(cidx), []);
-% scatterplot(yp(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
-% 
-% %% Plot Phase
-% plot(param.f_plot, unwrap(angle(xf)))
+[xt, ~, ~] = downconvert(param, cidx, 'current');
+scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+    param.sample_per_symbol(cidx), 0)
+
+%% Compensate for Dispersion, Method 1, Back Propagation
+% param.beta2 = -param.beta2;
+% param = split_step_single_polarization(param);
+
+% cidx = 3;
+% [xt2, xp2, ~] = downconvert(param, cidx, 'current');
+% scatterplot(xp2(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
+
+%% Compensate for Dispersion, Method 2, a linear filter, but this does not work for channels not in the middle
+filt_dc = param.dispersion.^(-param.zn);
+xf = ft(xt, param.df);
+xf = xf.*filt_dc;
+xt2 = ift(xf, param.df);
+
+scatterplot(xt2(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+    param.sample_per_symbol(cidx), 0)
+
+%% Method 3, consider center frequency
+% xt3 = xt.*exp(-1i*2*pi*param.center_frequency_channel(cidx).*param.t);
+dispersion_compensation = exp(-0.5*1i*param.beta2*(param.f).^2*param.span_length); 
+xf = ft(xt, param.df);
+xf = xf.*dispersion_compensation;
+xt3 = ift(xf, param.df);
+% xt3 = xt3.*exp(1i*2*pi*param.center_frequency_channel(cidx).*param.t);
+scatterplot(xt3(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+    param.sample_per_symbol(cidx), 0)
