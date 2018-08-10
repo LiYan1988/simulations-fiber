@@ -8,12 +8,18 @@ else
 end
 
 % Store dispersive and nonlinear phase factors to speedup code
-param.dispersion_bp = exp(-0.5*1i*param.beta2*param.f.^2*param.dz); 
+param.dispersion_bp2 = exp(-0.5*1i*param.beta2*param.f.^2*param.dz);
+param.dispersion_bp3 = exp(-1i/6*param.beta3*param.f.^3*param.dz);
+param.dispersion_bp = param.dispersion_bp2.*param.dispersion_bp3;
 param.hhz_bp = -1i*param.gamma*param.dz_eff_bp; 
 
 % --- Main loop
 % scheme: 1/2N -> D -> 1/2N; first half step nonlinear
 uu = param.data_mod_t_in_bp;
+
+% remove the effect of EDFA
+uu = uu*exp(-0.5*param.alpha*param.span_length);
+
 temp = uu.*exp(abs(uu).^2.*param.hhz_bp/2); % note hhz/2
 for n=1:param.zn
     % dispersion

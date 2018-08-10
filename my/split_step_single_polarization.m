@@ -2,7 +2,9 @@ function param = split_step_single_polarization(param)
 % Single palorization split step Fourier
 
 % Store dispersive and nonlinear phase factors to speedup code
-param.dispersion = exp(0.5*1i*param.beta2*param.f.^2*param.dz); 
+param.dispersion2 = exp(0.5*1i*param.beta2*param.f.^2*param.dz); 
+param.dispersion3 = exp(1i/6*param.beta3*param.f.^3*param.dz);
+param.dispersion = param.dispersion2.*param.dispersion3;
 param.hhz = 1i*param.gamma*param.dz_eff; 
 
 % --- Main loop
@@ -16,8 +18,13 @@ for n=1:param.zn
     temp = uu.*exp(abs(uu).^2.*param.hhz).*exp(-0.5*param.alpha*param.dz);
 end
 uu = temp.*exp(-abs(uu).^2.*param.hhz/2); % Final field
+
+% EDFA reamplifies signals
+uu = uu*exp(0.5*param.alpha*param.span_length);
+
 % temp = fftshift(ifft(uu)).* (param.fn*param.dt)/sqrt(2*pi); % Final spectrum
 temp = ft(uu, param.df);
+
 
 % 
 param.data_mod_t_current = uu;
