@@ -38,6 +38,10 @@ param.data_bit_channel = cell(1, param.channel_number);
 param.data_symbol_channel = cell(1, param.channel_number);
 param.data_mod_t_channel = cell(1, param.channel_number);
 
+% Randomly shift time sequences of each channel, equivalent to a phase
+% shift in the carrier of each channel
+param.shift_channel_time = zeros(1, param.channel_number);
+
 for c = 1:param.channel_number
     % Create filter
     filter_tx = rcosdesign(param.roll_off_filter(c), ...
@@ -71,14 +75,19 @@ for c = 1:param.channel_number
     length_overhead = length(data_mod_t_tmp)-length(param.t);
     data_mod_t_tmp = data_mod_t_tmp(delay_filter+1:end-length_overhead+delay_filter);
     data_mod_t_tmp = ift(ft(data_mod_t_tmp,param.df).*param.f_mask,param.df);
-    data_mod_t_tmp = data_mod_t_tmp.*exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
+    data_mod_t_tmp = data_mod_t_tmp.*...
+        exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
     
     % Assign power to the signal
     power_normalized = norm(data_mod_t_tmp)^2/param.fn; % normalized power
     data_mod_t_tmp = data_mod_t_tmp*sqrt(param.power_channel_time(c)/power_normalized);
     param.data_mod_t_channel{c} = data_mod_t_tmp;
     
-    param.data_mod_t_in = param.data_mod_t_in+data_mod_t_tmp;
+    % shift signal in different channels randomly
+    param.shift_channel_time(c) = randi([0, param.sample_per_symbol(c)-1]);
+    param.data_mod_t_channel{c} = circshift(param.data_mod_t_channel{c}, param.shift_channel_time(c));
+    
+    param.data_mod_t_in = param.data_mod_t_in+param.data_mod_t_channel{c};
 end
 
 % Delay of each filter

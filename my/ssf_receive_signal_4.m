@@ -2,18 +2,20 @@ clc;
 clear;
 close all;
 
-% Wrap chromatic dispersion compensation. 
+% Wrap chromatic dispersion compensation.
 % Try compensate for constellation rotation due to nonlinearity.
+% Note that constellation rotation is due to SPM, XPM, and interaction
+% between nonlinearity and CD. So simple derotation does not work.
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*400*1e9; % [Hz]
-param.fn = 2^22; % number of spectrum points
+param.fmax = 2*pi*200*1e9; % [Hz]
+param.fn = 2^17; % number of spectrum points
 
 param.span_length = 100; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
 param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
-param.alpha = 0*log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
+param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
 param.zn = 1000; % number of steps per span
 
 %% Channel Parameters
@@ -26,7 +28,7 @@ param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=8QAM; 16=16QAM; 32=
 param.constellation_size((N-1)/2+1) = 16;
 param.spectrum_grid_size = 50*1e9; % [Hz], spectrum grid size
 param.center_frequency_channel = param.spectrum_grid_size*(linspace(0, N-1, N)-(N-1)/2);
-param.power_channel_time = 10^(-6/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
+param.power_channel_time = 10^(-3/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
 % Filter parameters of each channel, assume raised cosine filters
 param.roll_off_filter = 0.1*ones(1, N); % Roll-off factor of raised cosine filter
@@ -45,10 +47,41 @@ param = split_step_single_polarization(param);
 % plot_current_signal(param, 'linear')
 
 %% Plot Transmitted Signal Before and After Chromatic Dispersion Compensation
-% cidx = (N-1)/2+1; % index of the channel to display
-cidx = 3;
-[xt_dc, xf_dc, xt] = dispersion_compensation(param, cidx);
+cidx = (N-1)/2+1; % index of the channel to display
+% cidx = 2;
+
+[xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, param, cidx);
 scatterplot(xt_dc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
-    param.sample_per_symbol(cidx), 0)
+    param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
+
+%% Compensate nonlinear rotation
+% This can only compensate for a very little part of the constellation
+% rotation because most of the rotation is due to XPM
+% Moreover, a simple constellation rotation cannot compensate for the
+% nonlinear phase noise. Backpropagation is needed.
+
+% if param.alpha>0
+%     param.span_length_effective = (1-exp(-param.alpha*param.span_length))/param.alpha;
+% elseif param.alpha==0
+%     param.span_length_effective = param.span_length;
+% end
+% 
+% nonlinear_phase = -1i*param.gamma*param.span_length_effective*exp(param.alpha*param.span_length);
+% 
+% % nonlinear_phase = -param.hhz*param.zn;
+% 
+% xt_nc = xt_dc.*exp(nonlinear_phase.*abs(xt_dc).^2);
+% scatterplot(xt_nc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+%     param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
+
+%% Backpropagation
+param.data_mod_t_in_bp = param.data_mod_t_current;
+param = back_propagation_split_step_single_polarization(param);
 
 %%
+cidx = (N-1)/2+1; % index of the channel to display
+cidx = 2;
+
+[xt_dc, xf_dc, xt] = dispersion_compensation(param.data_mod_t_current_bp, param, cidx);
+scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+    param.sample_per_symbol(cidx), param.shift_channel_time(cidx))

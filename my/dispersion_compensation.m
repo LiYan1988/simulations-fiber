@@ -1,9 +1,9 @@
-function [xt_dc, xf_dc, xt] = dispersion_compensation(param, cidx)
+function [xt_dc, xf_dc, xt] = dispersion_compensation(signal, param, cidx)
 % Compensate dispersion for cidx-th channel
 % xt_dc: time domain signal after compensation
 % xf_dc: frequency domain signal after compensation
 % xt: time domain signal before compensation
-[xt, ~, ~] = downconvert(param, cidx, 'current');
+[xt, ~, ~] = downconvert(signal, param, cidx);
 
 % a all-pass filter compensating for dispersion
 dc_filter = exp(-0.5*1i*param.beta2*(param.f+...
