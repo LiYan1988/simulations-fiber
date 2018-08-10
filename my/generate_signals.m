@@ -19,7 +19,7 @@ param.dz = param.span_length/param.zn; % [km], step size in z
 if param.alpha>0
     param.dz_eff = (1-exp(-param.alpha*param.dz))/param.alpha; % [km],
 else
-    param.dz_eff = 0; % [km],
+    param.dz_eff = param.dz; % [km],
 end
 
 % Channel specific parameters

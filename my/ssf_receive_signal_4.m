@@ -2,19 +2,19 @@ clc;
 clear;
 close all;
 
-% Wrap downconversion in back-to-back transission, can obtain good
-% constellation diagram for any channel.
+% Wrap chromatic dispersion compensation. 
+% Try compensate for constellation rotation due to nonlinearity.
 
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*400*1e9; % [Hz]
 param.fn = 2^22; % number of spectrum points
 
-param.span_length = 10; % [km], span length
-param.beta2 = -2.1683e-05; % [ns^2/km], GVD
-param.gamma = 0*1.27; % [(W*km)^-1], nonlinear coefficient of SMF
+param.span_length = 100; % [km], span length
+param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
+param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = 0*log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
-param.zn = 100; % number of steps per span
+param.zn = 1000; % number of steps per span
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
@@ -44,18 +44,11 @@ param = generate_signals(param);
 param = split_step_single_polarization(param);
 % plot_current_signal(param, 'linear')
 
-%% Plot Transmitted Signal
+%% Plot Transmitted Signal Before and After Chromatic Dispersion Compensation
 % cidx = (N-1)/2+1; % index of the channel to display
 cidx = 3;
-[xt, xp, ~] = downconvert(param, cidx, 'current');
-scatterplot(xp(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
+[xt_dc, xf_dc, xt] = dispersion_compensation(param, cidx);
+scatterplot(xt_dc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+    param.sample_per_symbol(cidx), 0)
 
-%% Compensate for Dispersion
-% Method 1, back
-param.beta2 = -param.beta2;
-param = split_step_single_polarization(param);
-
-%% 
-cidx = 3;
-[xt2, xp2, ~] = downconvert(param, cidx, 'current');
-scatterplot(xp2(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
+%%

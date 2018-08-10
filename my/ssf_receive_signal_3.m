@@ -4,17 +4,18 @@ close all;
 
 % Wrap downconversion in back-to-back transission, can obtain good
 % constellation diagram for any channel.
+% Compensate for chromatic dispersion
 
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*400*1e9; % [Hz]
 param.fn = 2^22; % number of spectrum points
 
-param.span_length = 10; % [km], span length
-param.beta2 = -2.1683e-05; % [ns^2/km], GVD
-param.gamma = 0*1.27; % [(W*km)^-1], nonlinear coefficient of SMF
+param.span_length = 100; % [km], span length
+param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
+param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = 0*log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
-param.zn = 100; % number of steps per span
+param.zn = 1000; % number of steps per span
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
@@ -48,8 +49,19 @@ param = split_step_single_polarization(param);
 % cidx = (N-1)/2+1; % index of the channel to display
 cidx = 3;
 [xt, ~, ~] = downconvert(param, cidx, 'current');
-scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+% scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+%     param.sample_per_symbol(cidx), 0)
+
+[xt0, ~, ~] = downconvert(param, cidx, 'in');
+scatterplot(xt0(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
     param.sample_per_symbol(cidx), 0)
+
+%% Signal 
+% cidx = 1;
+% xt = param.data_mod_t_current;
+% scatterplot(xt(param.filter_delay(cidx)+1:end-param.filter_delay(cidx)),...
+%     param.sample_per_symbol(cidx), 0)
+
 
 %% Compensate for Dispersion, Method 1, Back Propagation
 % param.beta2 = -param.beta2;
@@ -60,20 +72,26 @@ scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel
 % scatterplot(xp2(1, param.filter_delay(cidx)+1:end-param.filter_delay(cidx)))
 
 %% Compensate for Dispersion, Method 2, a linear filter, but this does not work for channels not in the middle
-filt_dc = param.dispersion.^(-param.zn);
-xf = ft(xt, param.df);
-xf = xf.*filt_dc;
-xt2 = ift(xf, param.df);
-
-scatterplot(xt2(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
-    param.sample_per_symbol(cidx), 0)
+% filt_dc = param.dispersion.^(-param.zn);
+% xf = ft(xt, param.df);
+% xf = xf.*filt_dc;
+% xt2 = ift(xf, param.df);
+% 
+% scatterplot(xt2(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
+%     param.sample_per_symbol(cidx), 65)
 
 %% Method 3, consider center frequency
 % xt3 = xt.*exp(-1i*2*pi*param.center_frequency_channel(cidx).*param.t);
-dispersion_compensation = exp(-0.5*1i*param.beta2*(param.f).^2*param.span_length); 
+dispersion_compensation = exp(-0.5*1i*param.beta2*(param.f+2*pi*param.center_frequency_channel(cidx)).^2*param.span_length); 
 xf = ft(xt, param.df);
 xf = xf.*dispersion_compensation;
 xt3 = ift(xf, param.df);
-% xt3 = xt3.*exp(1i*2*pi*param.center_frequency_channel(cidx).*param.t);
+
 scatterplot(xt3(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
     param.sample_per_symbol(cidx), 0)
+
+%%
+% plot(abs(xt2).^2)
+% hold on;
+% plot(abs(xt).^2)
+% plot(abs(xt3).^2)
