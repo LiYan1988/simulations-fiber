@@ -9,7 +9,7 @@ close all;
 param.fmax = 2*pi*200*1e9; % [Hz]
 param.fn = 2^17; % number of spectrum points
 
-param.span_length = 100; % [km], span length
+param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
 S = 0.06*1e6; % [s/(m^2*km)], third order dispersion
 param.wavelength = 1550*1e-9; % [m], reference wavelength
@@ -20,6 +20,13 @@ param.beta3 = (S - 4*pi*param.light_speed/param.wavelength^3*param.beta2)*...
 param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
 param.zn = 1000; % number of steps per span
+
+%% FBG
+fbg_beta2 = -param.beta2;
+fbg_beta3 = -param.beta3;
+fbg1_length = 80; % [km]
+fbg1_dispersion = exp(0.5*1i*fbg_beta2*param.f.^2*fbg1_length).*...
+    exp(1i/6*fbg_beta3*param.f.^3*fbg1_length);
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
