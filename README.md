@@ -12,7 +12,7 @@ We cannot solve the NLSE analytically and, thus, have to rely on numerical metho
   - [The lecture notes from the Fiber Optical Communication course in Chalmers](papers/dispersion-lecture-notes.pdf) introduce the dispersion in fiber. 
   - [A document on chromatic dispersion in optical fibers](papers/dispersion-general.pdf) summarizes how to computer third order dispersion coefficient.
 * What DSP should be included? I guess nonlinearity should not be compensated.
-  - No, only compensate for chromatic dispersion. The resultant constellation diagram of 16QAM is a bit rotated due to __XPM__.
+  - No, only compensate for chromatic dispersion. The resultant constellation diagram of 16QAM is a bit rotated due to nonlinearity.
   - Back-propagation to the received signals can generate perfect constellation diagrams for all the WDM channels (including legacy OOK and 16QAM), so the SSF simulation should be correct.
   - In single polarization case, dispersion is enough for my simulations.
 
