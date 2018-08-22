@@ -9,4 +9,5 @@ We cannot solve the NLSE analytically and, thus, have to rely on numerical metho
 * How to simulate EDFA (add noise)?
 * How to simulate CDF? Nonlinearity, dispersion, loss, etc.
 * What DSP should be included? Currently chromatic dispersion (D) is compensated, but third order dispersion (S) is not. Should I consider other impairments?
+  - $$a=b$$
 * For the question above, I guess nonlinearity should not be compensated.
