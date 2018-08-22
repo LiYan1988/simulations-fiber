@@ -23,3 +23,4 @@ We cannot solve the NLSE analytically and, thus, have to rely on numerical metho
 - DCF: ideal FBG without loss, nonlienarity, etc.?
 - Target pre-FEC Q=7.3 dB seems not very useful in simulations. It just gives some kind of threshold. But we are interested in the nonlinear noise suffered by the CUT in this transmission scenario, which should be represented by a numerical model or formula.
 - If amplifiers are ideal noise-less, how is it possible to add equivalent noise at the end? The end of the whole transmission, or the end of each SSMF span? What is the noise figure, e.g., 5 dB?
+- What does it mean by "links are transparent"?
