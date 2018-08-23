@@ -21,13 +21,6 @@ param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
 param.zn = 1000; % number of steps per span
 
-%% FBG
-fbg_beta2 = -param.beta2;
-fbg_beta3 = -param.beta3;
-fbg1_length = 80; % [km]
-fbg1_dispersion = exp(0.5*1i*fbg_beta2*param.f.^2*fbg1_length).*...
-    exp(1i/6*fbg_beta3*param.f.^3*fbg1_length);
-
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
 N = 5; % number of channels, should be an odd number
@@ -56,7 +49,7 @@ param = generate_signals(param);
 param = split_step_single_polarization(param);
 % plot_current_signal(param, 'linear')
 
-%% Plot Transmitted Signal Before and After Chromatic Dispersion Compensation
+%% Plot Transmitted Signal Before Chromatic Dispersion Compensation
 cidx = (N-1)/2+1; % index of the channel to display
 % cidx = 2;
 
@@ -64,34 +57,20 @@ cidx = (N-1)/2+1; % index of the channel to display
 scatterplot(xt_dc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
     param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
 
-%% Compensate nonlinear rotation
-% This can only compensate for a very little part of the constellation
-% rotation because most of the rotation is due to XPM
-% Moreover, a simple constellation rotation cannot compensate for the
-% nonlinear phase noise. Backpropagation is needed.
+%% FBG
+fbg_beta2 = -param.beta2;
+fbg_beta3 = -param.beta3;
+fbg1_length = 80; % [km]
+fbg1_dispersion = exp(0.5*1i*fbg_beta2*param.f.^2*fbg1_length).*...
+    exp(1i/6*fbg_beta3*param.f.^3*fbg1_length);
 
-% if param.alpha>0
-%     param.span_length_effective = (1-exp(-param.alpha*param.span_length))/param.alpha;
-% elseif param.alpha==0
-%     param.span_length_effective = param.span_length;
-% end
-% 
-% nonlinear_phase = -1i*param.gamma*param.span_length_effective*exp(param.alpha*param.span_length);
-% 
-% % nonlinear_phase = -param.hhz*param.zn;
-% 
-% xt_nc = xt_dc.*exp(nonlinear_phase.*abs(xt_dc).^2);
-% scatterplot(xt_nc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
-%     param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
-
-%% Backpropagation
-param.data_mod_t_in_bp = param.data_mod_t_current;
-param = back_propagation_split_step_single_polarization(param);
+param.data_mod_t_current = ift(ft(param.data_mod_t_current, param.df).*...
+    param.dispersion, param.df);
+param.data_mod_f_current = ft(param.data_mod_t_current, param.df);
 
 %%
 cidx = (N-1)/2+1; % index of the channel to display
-cidx = 3;
 
-[xt_dc, xf_dc, xt] = dispersion_compensation(param.data_mod_t_current_bp, param, cidx);
+[xt_dc, xf_dc, xt] = dispersion_compensation(param.data_mod_t_current, param, cidx);
 scatterplot(xt(param.delay_filter_channel(cidx)+1:end-param.delay_filter_channel(cidx)), ...
     param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
