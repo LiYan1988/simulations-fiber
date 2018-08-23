@@ -1,0 +1,17 @@
+function [xt_dc, xf_dc, xt] = dispersion_compensation(signal, param, cidx, cdl)
+% Compensate dispersion for cidx-th channel
+% 
+% xt_dc: time domain signal after compensation
+% xf_dc: frequency domain signal after compensation
+% xt: time domain signal before compensation
+[xt, ~, ~] = downconvert(signal, param, cidx);
+
+% a all-pass filter compensating for 2nd and 3rd order dispersion
+% frequency axis
+tmp_f = param.f+2*pi*param.center_frequency_channel(cidx);
+dc_filter = exp(-0.5*1i*param.beta2*(tmp_f).^2*param.span_length).*...
+    exp(-1i/6*param.beta3*(tmp_f).^3*param.span_length);
+
+xf_dc = ft(xt, param.df);
+xf_dc = xf_dc.*dc_filter;
+xt_dc = ift(xf_dc, param.df);

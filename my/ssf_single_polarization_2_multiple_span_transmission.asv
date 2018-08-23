@@ -61,20 +61,21 @@ scatterplot(xt_dc(param.delay_filter_channel(cidx)+1:end-param.delay_filter_chan
 %% FBG
 fbg_beta2 = -param.beta2;
 fbg_beta3 = -param.beta3;
-fbg_length_1 = 80; % [km]
-[signal_t_out, signal_f_out] = fbg_propagation(...
-    param.data_mod_t_current, fbg_beta2, fbg_beta3, fbg_length_1, param);
+fbg1_length = 80; % [km]
+fbg1_dispersion = exp(0.5*1i*fbg_beta2*param.f.^2*fbg1_length).*...
+    exp(1i/6*fbg_beta3*param.f.^3*fbg1_length);
 
-param.data_mod_t_current = signal_t_out;
-param.data_mod_f_current = signal_f_out;
+param.data_mod_t_current = ift(ft(param.data_mod_t_current, param.df).*...
+    param.dispersion, param.df);
+param.data_mod_f_current = ft(param.data_mod_t_current, param.df);
 
 %% Signal after FBG
 cidx = (N-1)/2+1; % index of the channel to display
 
-% compensate for residual dispersion
-[xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
-    param.beta2, param.beta3, 2, param);
+% downconvert the signal
+[xt, ~, ~] = downconvert(param.data_mod_t_current, param, cidx);
+for 
 scatterplot(...
-    xt_dc(param.delay_filter_channel(cidx)+1:...
+    xt(param.delay_filter_channel(cidx)+1:...
     end-param.delay_filter_channel(cidx)), ...
-    param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
+    param.sample_per_symbol(cidx), param.shift_channel_time(cidx)+1)
