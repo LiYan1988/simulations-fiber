@@ -2,12 +2,12 @@ clc;
 clear;
 close all;
 
-% Add FBG function
+% Point to point transmission
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*200*1e9; % [Hz]
-param.fn = 2^17; % number of spectrum points
+param.fmax = 2*pi*500*1e9; % [Hz]
+param.fn = 2^19; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
@@ -23,7 +23,7 @@ param.dz = 0.1; % [km]
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
-N = 5; % number of channels, should be an odd number
+N = 11; % number of channels, should be an odd number
 param.bandwidth_channel = 10*1e9*ones(1, N); % [Hz]
 param.bandwidth_channel((N-1)/2+1) = 32*1e9; % CUT
 param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=8QAM; 16=16QAM; 32=32QAM; 64=64QAM
@@ -50,14 +50,17 @@ param = generate_signals(param);
 % compensation, plus one span of 82 km SSFM followed by DCF with 90 km
 % SSMF-equivalent compensation
 
+% FBG parameters
+fbg_beta2 = -param.beta2;
+fbg_beta3 = -param.beta3;
+fbg_length_1 = 80; % [km]
+fbg_length_2 = 90; % [km]
+
 for n=1:4
-    % Split Step Fourier
+    % Split Step Fourier in SSMF
     param = split_step_single_polarization(param);
     
     % FBG
-    fbg_beta2 = -param.beta2;
-    fbg_beta3 = -param.beta3;
-    fbg_length_1 = 80; % [km]
     [signal_t_out, signal_f_out] = fbg_propagation(...
         param.data_mod_t_current, fbg_beta2, fbg_beta3, fbg_length_1, param);
     
@@ -67,15 +70,49 @@ end
 
 % one span of 82 km SSFM, followed by DCF with 90 km SSMF-equivalent
 % compression
-
+param = split_step_single_polarization(param);
+[signal_t_out, signal_f_out] = fbg_propagation(...
+    param.data_mod_t_current, fbg_beta2, fbg_beta3, fbg_length_2, param);
+param.data_mod_t_current = signal_t_out;
+param.data_mod_f_current = signal_f_out;
 
 %% Signal after FBG
 cidx = (N-1)/2+1; % index of the channel to display
 
-% compensate for residual dispersion
-[xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
-    param.beta2, param.beta3, 2, param);
-scatterplot(...
-    xt_dc(param.delay_filter_channel(cidx)+1:...
-    end-param.delay_filter_channel(cidx)), ...
-    param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
+% Plot all the channels
+for cidx=(N-1)/2+1
+    % compensate for residual dispersion
+    [xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
+        param.beta2, param.beta3, 0, param);
+    scatterplot(...
+        xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)), ...
+        param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
+    title(sprintf('Channel %d', cidx))
+end
+
+%% Signal clusters
+close all;
+clc;
+signal = zeros(size(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)), 1), 2);
+signal(:, 1) = real(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)));
+signal(:, 2) = imag(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)));
+
+signal = downsample(signal, param.sample_per_symbol(cidx), ...
+    param.shift_channel_time(cidx));
+
+% Find center of points 
+opts = statset('UseParallel', true);
+[idx,C,sumd,D] = kmeans(signal, 16, 'Display', 'final', ...
+    'maxiter', 1000, 'Replicates', 64, 'Options', opts);
+
+figure;
+hold on;
+plot(signal(:, 1), signal(:, 2), '.')
+plot(C(:, 1), C(:, 2), 'x')
+
+centers = C(idx, :);
+noise = (signal - centers).^2;

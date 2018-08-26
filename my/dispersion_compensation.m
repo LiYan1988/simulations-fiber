@@ -7,6 +7,8 @@ function [xt_dc, xf_dc, xt] = dispersion_compensation(signal, cidx, ...
 % xt_dc: time domain signal after compensation
 % xf_dc: frequency domain signal after compensation
 % xt: time domain signal before compensation
+
+% Downconvert signal to baseband
 [xt, ~, ~] = downconvert(signal, param, cidx);
 
 % a all-pass filter compensating for 2nd and 3rd order dispersion

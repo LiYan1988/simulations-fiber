@@ -79,7 +79,8 @@ param.data_mod_f_current = signal_f_out;
 %% Signal after FBG
 cidx = (N-1)/2+1; % index of the channel to display
 
-for cidx=1:N
+% Plot all the channels
+for cidx=(N-1)/2+1
     % compensate for residual dispersion
     [xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
         param.beta2, param.beta3, 0, param);
@@ -89,3 +90,36 @@ for cidx=1:N
         param.sample_per_symbol(cidx), param.shift_channel_time(cidx))
     title(sprintf('Channel %d', cidx))
 end
+
+%% Signal clusters
+close all;
+clc;
+signal = zeros(size(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)), 1), 2);
+signal(:, 1) = real(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)));
+signal(:, 2) = imag(xt_dc(param.delay_filter_channel(cidx)+1:...
+        end-param.delay_filter_channel(cidx)));
+
+signal = downsample(signal, param.sample_per_symbol(cidx), ...
+    param.shift_channel_time(cidx));
+
+% Find center of points 
+opts = statset('UseParallel', true);
+[idx,C,sumd,D] = kmeans(signal, 16, 'Display', 'final', ...
+    'maxiter', 1000, 'Replicates', 64, 'Options', opts);
+
+figure;
+hold on;
+plot(signal(:, 1), signal(:, 2), '.')
+plot(C(:, 1), C(:, 2), 'x')
+
+centers = C(idx, :);
+noise = sqrt(sum((signal - centers).^2, 2));
+
+noise_power = zeros(16, 1);
+for k=1:16
+    noise_power(k) = mean(noise(idx==k));
+end
+
+snr = sqrt(sum(C.^2, 2))./noise_power;
