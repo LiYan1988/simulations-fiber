@@ -8,13 +8,12 @@ param.f_plot = param.f/(2*pi)/1e9;
 % frequency mask as a low-pass filter
 param.f_mask = (param.f<2*pi*param.spectrum_grid_size/2)&(param.f>-2*pi*param.spectrum_grid_size/2);
 
-
 % Time domain parameters
 param.tmax = pi/param.df; % [s]
 param.dt = 2*param.tmax/param.fn;
 param.t = param.dt*(-param.fn/2:param.fn/2-1)';
 
-param.dz = param.span_length/param.zn; % [km], step size in z
+param.zn = round(param.span_length/param.dz); % number of steps
 % effective length of one step, used in the nonlinear component of SSF
 if param.alpha>0
     param.dz_eff = (1-exp(-param.alpha*param.dz))/param.alpha; % [km],
