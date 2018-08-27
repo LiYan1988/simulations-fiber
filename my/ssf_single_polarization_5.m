@@ -2,7 +2,7 @@ clc;
 clear;
 close all;
 
-% Point to point transmission
+% Derotate the constellation diagram
 
 %% Fiber Parameters
 % -------------- Primary parameters

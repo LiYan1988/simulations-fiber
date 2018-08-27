@@ -36,7 +36,8 @@ param.filter_tx_channel = cell(1, param.channel_number);
 param.data_bit_channel = cell(1, param.channel_number);
 param.data_symbol_channel = cell(1, param.channel_number);
 param.data_mod_t_channel = cell(1, param.channel_number);
-
+param.data_mod_symbol_channel = cell(1, param.channel_number);
+ 
 % Randomly shift time sequences of each channel, equivalent to a phase
 % shift in the carrier of each channel
 param.shift_channel_time = zeros(1, param.channel_number);
@@ -62,6 +63,9 @@ for c = 1:param.channel_number
     
     data_mod_t_tmp = qammod(data_symbol, param.constellation_size(c));
     data_mod_t_tmp = modnorm(data_mod_t_tmp, 'avpow', 1)*data_mod_t_tmp;
+    
+    % The initial symbols in the constellation diagram
+    param.data_mod_symbol_channel{c} = data_mod_t_tmp;
     
     % Pulse shaping
     % First upsample the symbol stream
