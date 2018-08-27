@@ -66,7 +66,8 @@ for c = 1:param.channel_number
     % Pulse shaping
     % First upsample the symbol stream
     data_mod_t_tmp = upfirdn(data_mod_t_tmp, [1], param.sample_per_symbol(c), 1);
-    % Pad zeros at the end
+    % Pad zeros at the end to flush out information inside the filter at
+    % the last several samples
     data_mod_t_tmp = [data_mod_t_tmp; zeros(param.sample_per_symbol(c)-1, 1)];
     % Pass through filter
     data_mod_t_tmp = upfirdn(data_mod_t_tmp, filter_tx, 1, 1); % pulse shaping

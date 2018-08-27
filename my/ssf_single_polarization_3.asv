@@ -34,7 +34,7 @@ param.center_frequency_channel = param.spectrum_grid_size*(linspace(0, N-1, N)-(
 param.power_channel_time = 10^(-3/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
 % Filter parameters of each channel, assume raised cosine filters
-param.roll_off_filter = 0.1*ones(1, N); % Roll-off factor of raised cosine filter
+param.roll_off_filter = 0.2*ones(1, N); % Roll-off factor of raised cosine filter
 param.symbol_in_filter = 100*ones(1, N); % length of impulse response in symbol
 param.shape_filter = cell(1, N); % shape of raised
 param.shape_filter(:) = {'normal'};
@@ -111,8 +111,20 @@ opts = statset('UseParallel', true);
 
 figure;
 hold on;
+box on;
+grid on;
 plot(signal(:, 1), signal(:, 2), '.')
 plot(C(:, 1), C(:, 2), 'x')
 
 centers = C(idx, :);
-noise = (signal - centers).^2;
+noise = sqrt(sum((signal - centers).^2, 2));
+
+noise_power = zeros(16, 1);
+for k=1:16
+    noise_power(k) = mean(noise(idx==k));
+end
+
+snr_point_cloud = sqrt(sum(C.^2, 2))./noise_power;
+snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise);
+
+%% Test receiver with 
