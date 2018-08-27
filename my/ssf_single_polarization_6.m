@@ -9,6 +9,9 @@ close all;
 %% Load data
 load ssf_signal_polarization_5.mat
 
+%% Test function
+% param = center_constellation(param);
+
 %% Signal clusters
 close all;
 clc;
