@@ -19,7 +19,7 @@ close all;
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*500*1e9; % [Hz]
-param.fn = 2^18; % number of spectrum points
+param.fn = 2^17; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
@@ -31,7 +31,7 @@ param.beta3 = (S-4*pi*param.light_speed/param.wavelength^3*param.beta2)*...
 % d3=1i*beta3/6*(2*pi*FF).^3;
 param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
-param.dz = 0.05; % [km]
+param.dz = 0.1; % [km]
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
@@ -55,7 +55,7 @@ param.shape_filter(:) = {'sqrt'};
 param.random_seed = 2394759; % input to rng
 
 %% Vary uniform power of all the channels
-power_step = -10:1:5;
+power_step = -10:1:10;
 param_mp = cell(1, length(power_step));
 
 parfor k=1:length(power_step)
@@ -75,3 +75,17 @@ end
 
 %% Save results
 save simulation_uniform_power_1.mat
+
+%% Plot results
+n_mp = length(param_mp);
+cidx = (param_mp{1}.channel_number+1)/2;
+snr_total = zeros(n_mp, 1);
+for n=1:n_mp
+    snr_total(n) = param_mp{n}.snr_total{cidx}(1);
+end
+
+figure;
+title('SNR of 16QAM (all channels have the same power)')
+plot(power_step, 10*log10(snr_total))
+xlabel('Power (dBm)')
+ylabel('SNR with only NLI (dB)')
