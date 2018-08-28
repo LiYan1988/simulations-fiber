@@ -3,8 +3,7 @@ clear;
 close all;
 
 % Write functions to implement:
-% 1. find centers of point clouds in the constellation diagram
-% 2. de-rotate the constellation disgram back for visualization purpose
+% find centers of point clouds in the constellation diagram
 
 %% Load data
 load ssf_signal_polarization_5.mat
@@ -14,7 +13,7 @@ param = center_constellation(param);
 
 %% Plot results
 close all
-for cidx= (param.channel_number+1)/2%1:param.channel_number
+for cidx= 1:param.channel_number%(param.channel_number+1)/2%1:param.channel_number
     figure;
     hold on;
     
@@ -24,3 +23,6 @@ for cidx= (param.channel_number+1)/2%1:param.channel_number
     v = param.cloud_centers{cidx};
     plot(v(:, 1), v(:, 2), 'x')
 end
+
+%% Save 
+save ssf_signal_polarization_7.mat
