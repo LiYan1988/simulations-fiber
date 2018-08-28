@@ -56,8 +56,32 @@ for cidx=1:param.channel_number
         noise_per_cloud(k) = mean(noise_per_point(idx==k));
     end
     
-    snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
+    %%%%%%%%%%%%%%%%%%%%%
+    C_receive_amplitude = sqrt(sum(C.^2, 2));
+    C_receive_amplitude = C_receive_amplitude./max(C_receive_amplitude);
+    
+    % Remove noise in amplitude, this part can be automated by smarter
+    % algorithm. Hard code for speed now.
+    % This is needed because the received constellation cloud centers are
+    % sorted by their amplitudes and angles
+    if param.constellation_size(cidx) == 2
+        C_receive_amplitude = ones(size(C_receive_amplitude));
+    elseif param.constellation_size(cidx) == 16
+        C_receive_amplitude(C_receive_amplitude>0.8723) = 1;
+        C_receive_amplitude((C_receive_amplitude<0.8723)&(C_receive_amplitude>0.5395)) = 0.74;
+        C_receive_amplitude(C_receive_amplitude<0.5395) = 0.33;
+    end
+    
+    C_receive_angle = angle(C(:, 1)+1i*C(:, 2))/pi;
+    
+    [~, C_idx] = sortrows([C_receive_amplitude, C_receive_angle], [1, 2]);
+    
+    snr_per_cloud = sqrt(sum(C(C_idx, :).^2, 2))./noise_per_cloud(C_idx);
     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
+    %%%%%%%%%%%%%%%%%%%%%
+    
+%     snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
+%     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
     
     % centers of clouds in constellation diagrams
     param.cloud_centers{cidx} = C;
