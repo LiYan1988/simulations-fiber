@@ -69,7 +69,7 @@ parfor k=1:length(power_step)
     % Change the uniform power
     param_temp.power_channel_time = 10^(power_step(k)/10)/1e3*ones(N, 1); % [W]
     % Fix the power of 16QAM to -1 dBm
-    param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3*ones(N, 1); % [W]
+    param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3; % [W]
     
     % Generate Signal
     param_temp = generate_signals(param_temp);
@@ -81,7 +81,7 @@ parfor k=1:length(power_step)
 end
 
 %% Save results
-save simulation_uniform_power_1.mat
+save simulation_uniform_power_2.mat
 
 %% Plot results
 n_mp = length(param_mp);
