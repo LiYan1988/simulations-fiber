@@ -14,7 +14,8 @@ close all;
 % Don't worry about dispersion or nonlinear coefficient, those are
 % relatively fixed.
 
-% In this file, add noise at each EDFA
+% In this file, change relative power of OOK to coherent channels
+% The power of 
 
 %% Fiber Parameters
 % -------------- Primary parameters
@@ -32,9 +33,10 @@ param.beta3 = (S-4*pi*param.light_speed/param.wavelength^3*param.beta2)*...
 param.gamma = 1.27; % [(W*km)^-1], nonlinear coefficient of SMF
 param.alpha = log(10)*0.2/10; % [1/km] in linear, 0.2 dB/km, positive number
 param.dz = 0.1; % [km]
-param.ase_exist = 'on';
-param.nsp = 1.8; % [1] spontaneous emission factor
-param.h = 
+param.ase_exist = true;
+param.nsp = 1.8; % [1] spontaneous emission factor, NF=5.5
+param.h = 6.626*1e-34; % [J*s], [W*Hz^-2] Plank's constant
+param.nu = param.light_speed/param.wavelength*1.5; % [Hz], light speed is in fiber, so 1.5 can bring it back to normal light speed
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
