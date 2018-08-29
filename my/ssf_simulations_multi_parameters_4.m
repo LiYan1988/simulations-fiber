@@ -48,7 +48,7 @@ param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=8QAM; 16=16QAM; 32=
 param.constellation_size((N-1)/2+1) = 16;
 param.spectrum_grid_size = 50*1e9; % [Hz], spectrum grid size
 param.center_frequency_channel = param.spectrum_grid_size*(linspace(0, N-1, N)-(N-1)/2);
-param.power_channel_time = 10^(-3/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
+param.power_channel_time = 10^(-1/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
 % Filter parameters of each channel, assume raised cosine filters
 param.roll_off_filter = 0.2*ones(1, N); % Roll-off factor of raised cosine filter
@@ -68,7 +68,7 @@ parfor k=1:length(power_step)
     
     % Change the uniform power
     param_temp.power_channel_time = 10^(power_step(k)/10)/1e3*ones(N, 1); % [W]
-    % Fix the power of 16QAM to -3 dBm
+    % Fix the power of 16QAM to -1 dBm
     param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3*ones(N, 1); % [W]
     
     % Generate Signal
