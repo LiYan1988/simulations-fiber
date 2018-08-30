@@ -2,20 +2,7 @@ clc;
 clear;
 close all;
 
-% Prepare to do more simulations with multiple parameters
-% Parameters to be changed:
-% 1. number of channels
-% 2. channel spacing
-% 3. channel power
-%   a. uniform power, but changing
-%   b. especially power of OOK to coherent channels, i.e., different power
-%   between OOk and 16QAM
-% 4. N of spans
-% Don't worry about dispersion or nonlinear coefficient, those are
-% relatively fixed.
-
-% In this file, change relative power of OOK to coherent channels
-% The power of the 16QAM channel is fixed at the optimal power (-1 dBm)
+% Simulate uniform power
 
 %% Fiber Parameters
 % -------------- Primary parameters
@@ -63,13 +50,13 @@ param.random_seed = 2394759; % input to rng
 power_step = -10:1:10;
 param_mp = cell(1, length(power_step)); % [dBm], power of each channel
 
-for k=1:length(power_step)
+parfor k=1:length(power_step)
     param_temp = param;
     
     % Change the uniform power
     param_temp.power_channel_time = 10^(power_step(k)/10)/1e3*ones(N, 1); % [W]
-    % Fix the power of 16QAM to -1 dBm
-    param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3; % [W]
+%     % Fix the power of 16QAM to -1 dBm
+%     param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3; % [W]
     
     % Generate Signal
     param_temp = generate_signals(param_temp);
@@ -81,18 +68,87 @@ for k=1:length(power_step)
 end
 
 %% Save results
-save simulation_uniform_power_2.mat
+save simulation_uniform_power.mat
 
 %% Plot results
 n_mp = length(param_mp);
 cidx = (param_mp{1}.channel_number+1)/2;
-snr_total = zeros(n_mp, 1);
+snr_16qam = zeros(n_mp, 1);
+snr_5ook = zeros(n_mp, 1);
 for n=1:n_mp
-    snr_total(n) = param_mp{n}.snr_total{cidx}(1);
+    snr_16qam(n) = param_mp{n}.snr_total{cidx}(1);
+    snr_5ook(n) = param_mp{n}.snr_total{cidx-1}(1);
 end
 
 figure;
-title('SNR of 16QAM (all channels have the same power)')
-plot(power_step, 10*log10(snr_total))
+box on;
+grid on;
+hold on;
+title('Uniform Launch Power')
+h1 = plot(power_step, 10*log10(snr_16qam), 'displayname', '16 QAM', ...
+    'linewidth', 2);
+h2 = plot(power_step, 10*log10(snr_5ook), 'displayname', '5th OOK', ...
+    'linewidth', 2);
 xlabel('Power (dBm)')
-ylabel('SNR with only NLI (dB)')
+ylabel('SNR (dB)')
+legend([h1, h2])
+pbaspect([7 4 1])
+
+%% Constellation at -1dBm
+% 16QAM
+constellation_16qam = param_mp{10}.signal_received_constellation_derotate{cidx};
+constellation_16qam_centers = param_mp{10}.cloud_centers_derotation{cidx};
+figure;
+hold on;
+box on;
+grid on;
+plot(constellation_16qam(:, 1), constellation_16qam(:, 2), '.')
+plot(constellation_16qam_centers(:, 1), constellation_16qam_centers(:, 2), 'x', 'linewidth', 2)
+xlabel('In-Phase')
+ylabel('Quadrature')
+xlim([-0.4, 0.4])
+ylim([-0.4, 0.4])
+pbaspect([1, 1, 1])
+
+
+% 5th OOK
+constellation_5ook = param_mp{10}.signal_received_constellation_derotate{cidx-1};
+constellation_5ook_centers = param_mp{10}.cloud_centers_derotation{cidx-1};
+figure;
+hold on;
+box on;
+grid on;
+plot(constellation_5ook(:, 1), constellation_5ook(:, 2), '.')
+plot(constellation_5ook_centers(:, 1), constellation_5ook_centers(:, 2), 'x', 'linewidth', 2)
+xlabel('In-Phase')
+ylabel('Quadrature')
+xlim([-0.4, 0.4])
+ylim([-0.4, 0.4])
+pbaspect([1, 1, 1])
+
+%% Constellation with histogram color map
+% 16 QAM
+% [hist_n, hist_c] = hist3(constellation_16qam, 'Nbins', [100, 100]);
+[hist_n, hist_c] = hist3(constellation_16qam, ...
+    'Ctrs', {linspace(-0.4, 0.4, 100), linspace(-0.4, 0.4, 100)});
+hist_n = hist_n/sum(hist_n(:));
+% contour(hist_n)
+
+imagesc(hist_c{1}, fliplr(hist_c{2}), hist_n)
+colormap(hot)
+xlabel('In-Phase')
+ylabel('Quadrature')
+pbaspect([1, 1, 1])
+
+%%
+% 5th OOK
+[hist_n, hist_c] = hist3(constellation_5ook, ...
+    'Ctrs', {linspace(-0.4, 0.4, 100), linspace(-0.4, 0.4, 100)});
+hist_n = hist_n/sum(hist_n(:));
+% contour(hist_n)
+
+h = imagesc(hist_c{1}, -hist_c{2}, hist_n');
+colormap(hot)
+xlabel('In-Phase')
+ylabel('Quadrature')
+pbaspect([1, 1, 1])

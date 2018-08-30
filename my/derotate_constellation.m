@@ -62,7 +62,10 @@ for cidx=1:param.channel_number
     if param.constellation_size(cidx) == 2
         rotation_angle = mean(C_template(:, 2)-C_receive(:, 2));
     elseif param.constellation_size(cidx) == 16
-        rotation_angle = mean(C_template(:, 2)-C_receive(:, 2));
+        a = mean(C_template(1:4, 2)-C_receive(1:4, 2));
+        b = mean(C_template(5:12, 2)-C_receive(5:12, 2));
+        c = mean(C_template(13:end, 2)-C_receive(13:end, 2));
+        rotation_angle = c;
     end
     
     param.angle_rotation(cidx) = rotation_angle;

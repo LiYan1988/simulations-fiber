@@ -2,20 +2,7 @@ clc;
 clear;
 close all;
 
-% Prepare to do more simulations with multiple parameters
-% Parameters to be changed:
-% 1. number of channels
-% 2. channel spacing
-% 3. channel power
-%   a. uniform power, but changing
-%   b. especially power of OOK to coherent channels, i.e., different power
-%   between OOk and 16QAM
-% 4. N of spans
-% Don't worry about dispersion or nonlinear coefficient, those are
-% relatively fixed.
-
-% In this file, change relative power of OOK to coherent channels
-% The power of the 16QAM channel is fixed at the optimal power (-1 dBm)
+% Simulate varying 16QAM power, OOK power is -1dBm
 
 %% Fiber Parameters
 % -------------- Primary parameters
@@ -63,13 +50,13 @@ param.random_seed = 2394759; % input to rng
 power_step = -10:1:10;
 param_mp = cell(1, length(power_step)); % [dBm], power of each channel
 
-for k=1:length(power_step)
+parfor k=1:length(power_step)
     param_temp = param;
     
-    % Change the uniform power
-    param_temp.power_channel_time = 10^(power_step(k)/10)/1e3*ones(N, 1); % [W]
-    % Fix the power of 16QAM to -1 dBm
-    param_temp.power_channel_time((N-1)/2+1) = 10^(-1/10)/1e3; % [W]
+    % Fix the uniform power to -1 dBm
+    param_temp.power_channel_time = 10^(-1/10)/1e3*ones(N, 1); % [W]
+    % Change the power of 16QAM
+    param_temp.power_channel_time((N-1)/2+1) = 10^(power_step(k)/10)/1e3; % [W]
     
     % Generate Signal
     param_temp = generate_signals(param_temp);
@@ -81,18 +68,29 @@ for k=1:length(power_step)
 end
 
 %% Save results
-save simulation_uniform_power_2.mat
+save mp8_simulation_varying_16qam_power.mat
 
 %% Plot results
+% load mp8_simulation_varying_16qam_power.mat
 n_mp = length(param_mp);
 cidx = (param_mp{1}.channel_number+1)/2;
-snr_total = zeros(n_mp, 1);
+snr_16qam = zeros(n_mp, 1);
+snr_5ook = zeros(n_mp, 1);
 for n=1:n_mp
-    snr_total(n) = param_mp{n}.snr_total{cidx}(1);
+    snr_16qam(n) = param_mp{n}.snr_total{cidx}(1);
+    snr_5ook(n) = param_mp{n}.snr_total{cidx-1}(1);
 end
 
 figure;
-title('SNR of 16QAM (all channels have the same power)')
-plot(power_step, 10*log10(snr_total))
-xlabel('Power (dBm)')
-ylabel('SNR with only NLI (dB)')
+box on;
+grid on;
+hold on;
+title('OOK Power @-1dBm')
+h1 = plot(power_step, 10*log10(snr_16qam), 'displayname', '16 QAM', ...
+    'linewidth', 2);
+h2 = plot(power_step, 10*log10(snr_5ook), 'displayname', '5th OOK', ...
+    'linewidth', 2);
+xlabel('16QAM power (dBm)')
+ylabel('SNR (dB)')
+legend([h1, h2])
+pbaspect([7 4 1])
