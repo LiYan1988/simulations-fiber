@@ -45,35 +45,34 @@ param.shift_channel_time = zeros(1, param.channel_number);
 for c = 1:param.channel_number
     % Create filter
     if strcmp(param.channel_type{c}, '16qam')
-        % if it is 16QAM, use square-root RRC
-        filter_tx = rcosdesign(param.filter_parameter(c), ...
-            param.symbol_in_filter(c), param.sample_per_symbol(c), ...
-            'sqrt');
+    filter_tx = rcosdesign(param.roll_off_filter(c), ...
+        param.symbol_in_filter(c), param.sample_per_symbol(c), ...
+        param.shape_filter{c});
     elseif strcmp(param.channel_type{c}, 'ook')
-        % if it is OOK, use Gaussian filter
-        filter_tx = gaussdesign(param.filter_parameter(c), ...
-            param.symbol_in_filter(c), param.sample_per_symbol(c));
-    end
+        filter_tx = rcosdesign(param.roll_off_filter(c), ...
+        param.symbol_in_filter(c), param.sample_per_symbol(c), ...
+        param.shape_filter{c});
+    
+    e
     param.filter_tx_channel{c} = filter_tx;
     
     % Delay of filter
     delay_filter = param.symbol_in_filter(c)/2*param.sample_per_symbol(c);
     param.delay_filter_channel(c) = delay_filter;
     
-    % Generate bit stream, 0 at the start and end of the bit stream
+    % Generate bit stream
     data_bit = randi([0, 1], param.symbol_number(c)-2, param.bit_per_symbol(c));
-%     data_bit = [zeros(1, param.bit_per_symbol(c)); data_bit; zeros(1, param.bit_per_symbol(c))];
     param.data_bit_channel{c} = data_bit;
     
     % Convert bits to integers and then to symbols
     data_symbol = bi2de(data_bit);
     param.data_symbol_channel{c} = data_symbol;
     
-    if strcmp(param.channel_type{c}, '16qam')
+    if param.constellation_size(c)>2
         data_mod_t_tmp = qammod(data_symbol, param.constellation_size(c));
         data_mod_t_tmp = modnorm(data_mod_t_tmp, 'avpow', 1)*data_mod_t_tmp;
-    elseif strcmp(param.channel_type{c}, 'ook')
-        data_mod_t_tmp = data_symbol;
+    elseif param.constellation_size(c)==2
+        data_mod_t_tmp = data_symbol; 
     end
     
     % The initial symbols in the constellation diagram

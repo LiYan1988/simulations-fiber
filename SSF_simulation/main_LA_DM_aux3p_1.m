@@ -23,7 +23,7 @@ param.Nsc = 1;             %Numero di sottoportanti
 param.Nu = 4096/param.Nsc; %Number of symbols(deve essere pari) per ogni subcarrier
 param.No = 2048/param.Nsc; %Overlapped symbols(deve essere pari) per ogni subcarrier
 
-param.imod = 3;           %Modulation format (0=CW,1=GAUSS,2=Const.Env.Unif.Phase,3=BPSK,4=QPSK,5=16-QAM, 6=64-QAM)
+param.imod = 1;           %Modulation format (0=CW,1=GAUSS,2=Const.Env.Unif.Phase,3=BPSK,4=QPSK,5=16-QAM, 6=64-QAM)
 param.imodw = 3;          %Modulation_format_interferenti_WDM (0=CW,1=GAUSS,2=Const.Env.Unif.Phase,3=BPSK,4=QPSK,5=16-QAM, 6=64-QAM)
 
 param.Nspan = 2;         %Numero di tratte

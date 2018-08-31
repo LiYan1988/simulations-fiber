@@ -6,7 +6,7 @@ close all;
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*500*1e9; % [Hz]
+param.fmax = 2*pi*640*1e9; % [Hz], should be common multiples of all channels' bandwidths
 param.fn = 2^17; % number of spectrum points
 
 param.span_length = 82; % [km], span length
@@ -27,21 +27,41 @@ param.nu = param.light_speed/param.wavelength*1.5; % [Hz], light speed is in fib
 
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
-N = 11; % number of channels, should be an odd number
+N = 3; % number of channels, should be an odd number
 param.bandwidth_channel = 10*1e9*ones(1, N); % [Hz]
 param.bandwidth_channel((N-1)/2+1) = 32*1e9; % CUT
+
+
+%%%%%%%%% constellation_size is not good, will not use it %%%%%%%%%%
 param.constellation_size = 2*ones(1, N); % 2=BPSK; 4=QPSK; 8=8QAM; 16=16QAM; 32=32QAM; 64=64QAM
 % param.constellation_size = [2, 4, 8, 16, 32];
 param.constellation_size((N-1)/2+1) = 16;
+%%%%%%%%% should directlly specify modulation format by string %%%%%%%%%%
+param.channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
+    repmat({'ook'}, (N-1)/2, 1)];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 param.spectrum_grid_size = 50*1e9; % [Hz], spectrum grid size
 param.center_frequency_channel = param.spectrum_grid_size*(linspace(0, N-1, N)-(N-1)/2);
 param.power_channel_time = 10^(-1/10)/1e3*ones(N, 1); % [W], power of channel in time domain, in contrast to the frequency domain PSD measured in W/Hz
 
-% Filter parameters of each channel, assume raised cosine filters
-param.roll_off_filter = 0.2*ones(1, N); % Roll-off factor of raised cosine filter
-param.symbol_in_filter = 100*ones(1, N); % length of impulse response in symbol
-param.shape_filter = cell(1, N); % shape of raised
-param.shape_filter(:) = {'sqrt'};
+%%%%%%%%%%%%%%%%%%%% Change the filter parameter configuration %%%%%%%%%
+% For OOK channels, specify the bandwidth-symbol time product
+param.filter_parameter = 1*ones(1, N);
+% For 16QAM use square-root RRC, then specify the roll-off factor
+param.filter_parameter((N-1)/2+1) = 0.2; 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+param.symbol_in_filter = 20*ones(1, N); % length of impulse response in symbol
+
+%%%%%%%%%%%%%% square-root RRC is always used for 16QAM, no need to specify
+% param.shape_filter = cell(1, N); % shape of raised
+% param.shape_filter(:) = {'sqrt'};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % Random seed
 param.random_seed = 2394759; % input to rng

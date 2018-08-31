@@ -64,13 +64,9 @@ for cidx=1:param.channel_number
     % algorithm. Hard code for speed now.
     % This is needed because the received constellation cloud centers are
     % sorted by their amplitudes and angles
-    if strcmp(param.channel_type{cidx}, 'ook')
-        % OOK
-        min_C = min(C_receive_amplitude);
-        max_C = max(C_receive_amplitude);
-        C_receive_amplitude(C_receive_amplitude==min_C) = 0;
-        C_receive_amplitude(C_receive_amplitude==max_C) = 1;
-    elseif strcmp(param.channel_type{cidx}, '16qam')
+    if strcmp(param.channel_type{c}, 'ook')
+        C_receive_amplitude = ones(size(C_receive_amplitude));
+    elseif strcmp(param.channel_type{c}, '16qam')
         C_receive_amplitude(C_receive_amplitude>0.8723) = 1;
         C_receive_amplitude((C_receive_amplitude<0.8723)&(C_receive_amplitude>0.5395)) = 0.74;
         C_receive_amplitude(C_receive_amplitude<0.5395) = 0.33;
