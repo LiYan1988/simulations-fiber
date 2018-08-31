@@ -1,10 +1,17 @@
-clc
-Fs = 200;           % sampling frequency in Hz (you can change it)
-Ts = 1/Fs;          % sampling interval
-Tot_time = 100;             % total time in seconds (you can change it)
-width = 20;                 % width of NRZ pulse in seconds (you can change it)
-time = 0:Ts:Tot_time-Ts;    % time on x-axis
-modulous = mod(time, width);   
-signal = (2*(modulous<width/2))-1; 
-plot(time,signal);                 % plots the signal versus time
-axis([0 Tot_time -1.5 1.5]);       % adjusts the range of x-axis and y-axis 
+clc;
+clear;
+close all;
+
+load matlab.mat
+
+cidx=1;
+xt = param.data_mod_t_current.*exp(1i*2*pi*param.center_frequency_channel(cidx).*param.t);
+xf = ft(xt, param.df);
+figure;
+hold on;
+plot(param.f_plot, 10*log10(abs(xf).^2))
+xf = xf.*param.f_mask;
+plot(param.f_plot, 10*log10(abs(xf).^2))
+xt = ift(xf, param.df);
+
+plot(param.f_plot, 10*log10(abs(xf).^2))
