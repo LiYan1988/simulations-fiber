@@ -50,20 +50,15 @@ param.random_seed = 2394759; % input to rng
 spacing_step = ((-10:2:30)+50)*1e9;
 param_mp = cell(1, length(spacing_step)); % [dBm], power of each channel
 
-parfor k=1:length(spacing_step)    
-    param_temp = param;
-    
-    % Change channel spacing
-    param_temp.center_frequency_channel = spacing_step(k)*(linspace(0, N-1, N)-(N-1)/2);
-        
-    % Generate Signal
-    param_temp = generate_signals(param_temp);
-    
-    % Propagation through a link
-    param_temp = simulate_link1(param_temp);
-    
-    param_mp{k} = param_temp;
-end
+param_temp = param;
+
+% Generate Signal
+param_temp = generate_signals(param_temp);
+
+% Propagation through a link
+param_temp = simulate_link1(param_temp);
+
+param_mp{k} = param_temp;
 
 %% Save results
 save mp11_simulation_varying_channel_spacing.mat
