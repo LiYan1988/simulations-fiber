@@ -45,63 +45,88 @@ param.shift_channel_time = zeros(1, param.channel_number);
 for c = 1:param.channel_number
     % Create filter
     if strcmp(param.channel_type{c}, '16qam')
-    filter_tx = rcosdesign(param.roll_off_filter(c), ...
-        param.symbol_in_filter(c), param.sample_per_symbol(c), ...
-        param.shape_filter{c});
+        % if it is 16QAM, use square-root RRC
+        filter_tx = rcosdesign(param.filter_parameter(c), ...
+            param.symbol_in_filter(c), param.sample_per_symbol(c), ...
+            'sqrt');
     elseif strcmp(param.channel_type{c}, 'ook')
-        filter_tx = rcosdesign(param.roll_off_filter(c), ...
-        param.symbol_in_filter(c), param.sample_per_symbol(c), ...
-        param.shape_filter{c});
-    
-    e
+        % if it is OOK, use normal RRC as low pass filter
+        filter_tx = gaussdesign(param.filter_)
+    end
     param.filter_tx_channel{c} = filter_tx;
     
     % Delay of filter
-    delay_filter = param.symbol_in_filter(c)/2*param.sample_per_symbol(c);
+    delay_filter = (length(filter_tx)-1)/2;
     param.delay_filter_channel(c) = delay_filter;
     
-    % Generate bit stream
+    % Generate bit stream, 0 at the start and end of the bit stream
     data_bit = randi([0, 1], param.symbol_number(c)-2, param.bit_per_symbol(c));
+%     data_bit = [zeros(1, param.bit_per_symbol(c)); data_bit; zeros(1, param.bit_per_symbol(c))];
     param.data_bit_channel{c} = data_bit;
     
     % Convert bits to integers and then to symbols
     data_symbol = bi2de(data_bit);
     param.data_symbol_channel{c} = data_symbol;
     
-    if param.constellation_size(c)>2
+    if strcmp(param.channel_type{c}, '16qam')
         data_mod_t_tmp = qammod(data_symbol, param.constellation_size(c));
         data_mod_t_tmp = modnorm(data_mod_t_tmp, 'avpow', 1)*data_mod_t_tmp;
-    elseif param.constellation_size(c)==2
-        data_mod_t_tmp = data_symbol; 
+    elseif strcmp(param.channel_type{c}, 'ook')
+        data_mod_t_tmp = data_symbol;
     end
     
     % The initial symbols in the constellation diagram
     param.data_mod_symbol_channel{c} = data_mod_t_tmp;
     
-    % Pulse shaping
-    % First upsample the symbol stream
-    data_mod_t_tmp = upfirdn(data_mod_t_tmp, [1], param.sample_per_symbol(c), 1);
-    % Pad zeros at the end to flush out information inside the filter at
-    % the last several samples
-    data_mod_t_tmp = [data_mod_t_tmp; zeros(param.sample_per_symbol(c)-1, 1)];
-    % Pass through filter
-    data_mod_t_tmp = upfirdn(data_mod_t_tmp, filter_tx, 1, 1); % pulse shaping
-    % Overhead needs to be removed at the start and end of signal
-    length_overhead = length(data_mod_t_tmp)-length(param.t);
-    data_mod_t_tmp = data_mod_t_tmp(delay_filter+1:end-length_overhead+delay_filter);
-    data_mod_t_tmp = ift(ft(data_mod_t_tmp,param.df).*param.f_mask,param.df);
-    data_mod_t_tmp = data_mod_t_tmp.*...
-        exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
+    % ---------------- Rewrite pulse shaping
+    % pad zeros at head and tail, prevent delay of filter distort signal
+    data_mod_t_tmp = [0; data_mod_t_tmp; 0];
+    
+    % pass through filter
+    data_mod_t_tmp = upfirdn(data_mod_t_tmp, filter_tx, ...
+        param.sample_per_symbol(c));
+    
+    % remove head and tail
+    A = param.symbol_in_filter(c)/2; % half filter length
+    u = ((A-0.5)*param.sample_per_symbol(c)+1):...
+        ((A-0.5)*param.sample_per_symbol(c)+param.fn); % index of the signal
+    data_mod_t_tmp = data_mod_t_tmp(u);
+    % ----------------
+    
+    % ----------------
+%     % Pulse shaping
+%     % First upsample the symbol stream
+%     data_mod_t_tmp = upfirdn(data_mod_t_tmp, [1], param.sample_per_symbol(c), 1);
+%     % Pad zeros at the end to flush out information inside the filter at
+%     % the last several samples
+%     data_mod_t_tmp = [data_mod_t_tmp; zeros(param.sample_per_symbol(c)-1, 1)];
+%     % Pass through filter
+%     data_mod_t_tmp = upfirdn(data_mod_t_tmp, filter_tx, 1, 1); % pulse shaping
+%     % Overhead needs to be removed at the start and end of signal
+%     length_overhead = length(data_mod_t_tmp)-length(param.t);
+%     data_mod_t_tmp = data_mod_t_tmp(delay_filter+1:end-length_overhead+delay_filter);
+    % ----------------
+    
+    if strcmp(param.channel_type{c}, 'ook')
+        [data_mod_t_tmp, data_bit] = generate_ook(param, c);
+        param.data_bit_channel{c} = data_bit;
+        param.data_mod_symbol_channel{c} = data_bit;
+    end
     
     % Assign power to the signal
     power_normalized = norm(data_mod_t_tmp)^2/param.fn; % normalized power
     data_mod_t_tmp = data_mod_t_tmp*sqrt(param.power_channel_time(c)/power_normalized);
-    param.data_mod_t_channel{c} = data_mod_t_tmp;
     
     % shift signal in different channels randomly
     param.shift_channel_time(c) = randi([0, param.sample_per_symbol(c)-1]);
-    param.data_mod_t_channel{c} = circshift(param.data_mod_t_channel{c}, param.shift_channel_time(c));
+    data_mod_t_tmp = circshift(data_mod_t_tmp, param.shift_channel_time(c));
     
+    % Move in spectrum to its frequency grid
+%     data_mod_t_tmp = ift(ft(data_mod_t_tmp,param.df).*param.f_mask,param.df);
+    data_mod_t_tmp = data_mod_t_tmp.*...
+        exp(-1i*2*pi*param.center_frequency_channel(c).*param.t);
+
+    param.data_mod_t_channel{c} = data_mod_t_tmp;
     param.data_mod_t_in = param.data_mod_t_in+param.data_mod_t_channel{c};
 end
 

@@ -49,7 +49,7 @@ param.power_channel_time = 10^(-1/10)/1e3*ones(N, 1); % [W], power of channel in
 
 %%%%%%%%%%%%%%%%%%%% Change the filter parameter configuration %%%%%%%%%
 % For OOK channels, specify the bandwidth-symbol time product
-param.filter_parameter = 1*ones(1, N);
+param.filter_parameter = 0.7*ones(1, N);
 % For 16QAM use square-root RRC, then specify the roll-off factor
 param.filter_parameter((N-1)/2+1) = 0.2; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
