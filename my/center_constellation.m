@@ -23,19 +23,35 @@ for cidx=1:param.channel_number
     [xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
         param.beta2, param.beta3, dispersion_resudual_length, param);
     
-    % Remove head and tail of the signal
-    signal = zeros(size(xt_dc(param.delay_filter_channel(cidx)+1:...
-        end-param.delay_filter_channel(cidx)), 1), 2);
+    %     % Remove head and tail of the signal
+    %     signal = zeros(size(xt_dc(param.delay_filter_channel(cidx)+1:...
+    %         end-param.delay_filter_channel(cidx)), 1), 2);
+    %
+    %     % Convert signal from complex to Nx2 vector
+    %     signal(:, 1) = real(xt_dc(param.delay_filter_channel(cidx)+1:...
+    %         end-param.delay_filter_channel(cidx)));
+    %     signal(:, 2) = imag(xt_dc(param.delay_filter_channel(cidx)+1:...
+    %         end-param.delay_filter_channel(cidx)));
     
-    % Convert signal from complex to Nx2 vector
-    signal(:, 1) = real(xt_dc(param.delay_filter_channel(cidx)+1:...
-        end-param.delay_filter_channel(cidx)));
-    signal(:, 2) = imag(xt_dc(param.delay_filter_channel(cidx)+1:...
-        end-param.delay_filter_channel(cidx)));
+    signal = zeros(size(xt_dc, 1), 2);
+    signal(:, 1) = real(xt_dc);
+    signal(:, 2) = imag(xt_dc);
+    
+    sumd = zeros(param.sample_per_symbol(cidx), 1);
+    for nn=1:param.sample_per_symbol(cidx)
+        signal_tmp = downsample(signal, param.sample_per_symbol(cidx), nn-1);
+        opts = statset('UseParallel', true);
+        [~, ~, sumd_tmp] = kmeans(signal_tmp, ...
+            param.constellation_size(cidx), ...
+            'Display', 'off', 'maxiter', 1000, ...
+            'Replicates', 64, 'Options', opts);
+        sumd(nn) = mean(sumd_tmp);
+    end
+    
+    [~, kmean_idx] = min(sumd);
     
     % Sample the signal
-    signal = downsample(signal, param.sample_per_symbol(cidx), ...
-        param.shift_channel_time(cidx));
+    signal = downsample(signal, param.sample_per_symbol(cidx), kmean_idx-1);
     
     % Find center of points
     % idx is the index of centers
@@ -84,8 +100,8 @@ for cidx=1:param.channel_number
     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
     %%%%%%%%%%%%%%%%%%%%%
     
-%     snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
-%     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
+    %     snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
+    %     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
     
     % centers of clouds in constellation diagrams
     param.cloud_centers{cidx} = C;
