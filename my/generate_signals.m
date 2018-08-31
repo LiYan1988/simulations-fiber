@@ -133,9 +133,6 @@ for c = 1:param.channel_number
     param.data_mod_t_in = param.data_mod_t_in+data_mod_t_tmp;
 end
 
-% Delay of each filter
-param.filter_delay = param.symbol_in_filter/2.*param.sample_per_symbol;
-
 
 % Fourier transform of waveform
 % param.data_mod_f_in = fftshift(ifft(param.data_mod_t_in))*sqrt(param.fn*param.dt);

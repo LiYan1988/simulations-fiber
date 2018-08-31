@@ -57,8 +57,8 @@ for cidx=1:param.channel_number
     signal = downsample(signal, param.sample_per_symbol(cidx), kmean_idx-1);
     signal = signal((sym_rm+1):(param.symbol_number(cidx)-sym_rm), :); % remove the first and last several samples
     % signal corresponds to 
-    % param.data_mod_symbol_channel{cidx}(sym_rm-1:sym_rm+size(signal, 1)-2)
-    u = param.data_mod_symbol_channel{cidx}(sym_rm-1:sym_rm+size(signal, 1)-2);
+    % param.data_mod_symbol_channel{cidx}v(sym_rm:sym_rm+param.symbol_number(cidx)-1)
+    
     
     % Find center of points
     % idx is the index of centers

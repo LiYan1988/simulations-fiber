@@ -8,8 +8,8 @@ function param = simulate_link1(param)
 % FBG parameters
 fbg_beta2 = -param.beta2;
 fbg_beta3 = -param.beta3;
-fbg_length_1 = 80; % [km]
-fbg_length_2 = 90; % [km]
+fbg_length_1 = 82; % 80 % [km]
+fbg_length_2 = 82; % 90 % [km]
 
 for n=1:1 %4
     % Split Step Fourier in SSMF
