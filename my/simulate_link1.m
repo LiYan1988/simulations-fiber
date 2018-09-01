@@ -31,8 +31,6 @@ param = split_step_single_polarization(param);
 param.data_mod_t_current = signal_t_out;
 param.data_mod_f_current = signal_f_out;
 
-save matlab.mat
-
 %% Receiver 
 % Recive signal and find centers of point clouds in constellations
 param = center_constellation(param);

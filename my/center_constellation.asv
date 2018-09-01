@@ -17,6 +17,10 @@ param.snr_per_cloud = cell(1, param.channel_number);
 param.snr_total = cell(1, param.channel_number);
 % Points (in Nx2 vector) in the constellation
 param.signal_received_constellation = cell(1, param.channel_number);
+% received complex signal/symbols
+param.signal_rx_complex = cell(1, param.channel_number);
+% original transmitted complex signal/symbols
+param.signal_tx_complex = cell(1, param.channel_number);
 
 for cidx=1:param.channel_number
     % Downconversion and dispersion compensation
@@ -56,9 +60,8 @@ for cidx=1:param.channel_number
     % Sample the signal
     signal = downsample(signal, param.sample_per_symbol(cidx), kmean_idx-1);
     signal = signal((sym_rm+1):(param.symbol_number(cidx)-sym_rm), :); % remove the first and last several samples
-    % signal corresponds to 
-    % param.data_mod_symbol_channel{cidx}v(sym_rm:sym_rm+param.symbol_number(cidx)-1)
-    
+    [signal, signal_received_out, signal_original_out] = ...
+        align_signals(signal, sym_rm, param);
     
     % Find center of points
     % idx is the index of centers
@@ -118,4 +121,8 @@ for cidx=1:param.channel_number
     param.snr_total{cidx} = snr_total;
     % Points (in Nx2 vector) in the constellation
     param.signal_received_constellation{cidx} = signal;
+    % Complex rx signal
+    param.signal_rx_complex{cidx} = signal_received_out;
+    % Complex tx signal
+    param.s
 end
