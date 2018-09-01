@@ -37,3 +37,6 @@ param = center_constellation(param);
 
 % Rotate constellations back for visualization
 param = derotate_constellation(param);
+
+% Calculate SNR for each channel
+param = calculate_snr(param);

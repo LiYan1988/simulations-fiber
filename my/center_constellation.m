@@ -12,9 +12,9 @@ end
 % centers of clouds in constellation diagrams
 param.cloud_centers = cell(1, param.channel_number);
 % SNR per clound
-param.snr_per_cloud = cell(1, param.channel_number);
+% param.snr_per_cloud = cell(1, param.channel_number);
 % Total SNR
-param.snr_total = cell(1, param.channel_number);
+% param.snr_total = cell(1, param.channel_number);
 % Points (in Nx2 vector) in the constellation
 param.signal_received_constellation = cell(1, param.channel_number);
 % received complex signal/symbols
@@ -106,8 +106,8 @@ for cidx=1:param.channel_number
     
     [~, C_idx] = sortrows([C_receive_amplitude, C_receive_angle], [1, 2]);
     
-    snr_per_cloud = sqrt(sum(C(C_idx, :).^2, 2))./noise_per_cloud(C_idx);
-    snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
+%     snr_per_cloud = sqrt(sum(C(C_idx, :).^2, 2))./noise_per_cloud(C_idx);
+%     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
     %%%%%%%%%%%%%%%%%%%%%
     
     %     snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
@@ -116,9 +116,9 @@ for cidx=1:param.channel_number
     % centers of clouds in constellation diagrams
     param.cloud_centers{cidx} = C;
     % SNR per clound
-    param.snr_per_cloud{cidx} = snr_per_cloud;
+%     param.snr_per_cloud{cidx} = snr_per_cloud;
     % Total SNR
-    param.snr_total{cidx} = snr_total;
+%     param.snr_total{cidx} = snr_total;
     % Points (in Nx2 vector) in the constellation
     param.signal_received_constellation{cidx} = signal;
     % Complex rx signal
