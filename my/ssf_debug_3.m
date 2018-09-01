@@ -12,6 +12,8 @@ load matlab1.mat
 % Rotate constellations back for visualization
 param = derotate_constellation(param);
 
+save matlab2.mat
+
 %%
 close all
 for n=1:param.channel_number
