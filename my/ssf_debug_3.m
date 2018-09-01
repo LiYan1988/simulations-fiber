@@ -2,11 +2,13 @@ clc;
 clear
 close all;
 
-load matlab.mat
+% load matlab.mat
+% 
+% % Recive signal and find centers of point clouds in constellations
+% param = center_constellation(param);
+% save matlab1.mat
 
-% Recive signal and find centers of point clouds in constellations
-param = center_constellation(param);
-
+load matlab1.mat
 % Rotate constellations back for visualization
 param = derotate_constellation(param);
 

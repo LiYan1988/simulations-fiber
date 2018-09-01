@@ -47,11 +47,17 @@ for cidx=1:param.channel_number
     % This is needed because the received constellation cloud centers are
     % sorted by their amplitudes and angles
     if param.constellation_size(cidx) == 2
-        C_receive_amplitude = ones(size(C_receive_amplitude));
+        a = C_receive_amplitude>0.5;
+        b = C_receive_amplitude<0.5;
+        C_receive_amplitude(a) = 1;
+        C_receive_amplitude(b) = 0;
     elseif param.constellation_size(cidx) == 16
-        C_receive_amplitude(C_receive_amplitude>0.8723) = 1;
-        C_receive_amplitude((C_receive_amplitude<0.8723)&(C_receive_amplitude>0.5395)) = 0.74;
-        C_receive_amplitude(C_receive_amplitude<0.5395) = 0.33;
+        a = C_receive_amplitude>0.8723;
+        b = (C_receive_amplitude<0.8723)&(C_receive_amplitude>0.5395);
+        c = C_receive_amplitude<0.5395;
+        C_receive_amplitude(a) = 1;
+        C_receive_amplitude(b) = 0.74;
+        C_receive_amplitude(c) = 0.33;
     end
     
     C_receive_angle = angle(C_receive(:, 1)+1i*C_receive(:, 2))/pi;
@@ -60,12 +66,12 @@ for cidx=1:param.channel_number
     
     %% Calculate angle to de-rotation
     if param.constellation_size(cidx) == 2
-        rotation_angle = mean(C_template(:, 2)-C_receive(:, 2));
+        rotation_angle = mean(C_template(2, 2)-C_receive(2, 2));
     elseif param.constellation_size(cidx) == 16
         a = mean(C_template(1:4, 2)-C_receive(1:4, 2));
         b = mean(C_template(5:12, 2)-C_receive(5:12, 2));
         c = mean(C_template(13:end, 2)-C_receive(13:end, 2));
-        rotation_angle = c;
+        rotation_angle = a;
     end
     
     param.angle_rotation(cidx) = rotation_angle;
