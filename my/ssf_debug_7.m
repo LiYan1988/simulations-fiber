@@ -56,10 +56,10 @@ param = configure_channels(param, N, spectrum_grid_size, ...
     channel_type, power_dbm, filter_parameter, symbol_in_filter);
 
 %% Test 
-power_dbm = -10:1:10;
+power_dbm = -10:1:0;
 param_mp = cell(1, length(power_dbm)); % [dBm], power of each channel
 
-parfor k=1:length(power_dbm)        
+parfor k=6:length(power_dbm)        
     % Change channel uniform power
     param_temp = configure_channels_default_2(param, power_dbm(k));
 
@@ -77,15 +77,16 @@ save variable_power_11channels.mat
 
 %% Plot results
 % SNR
-% clc;
-% close all;
-% clear;
-% load variable_power_11channels.mat
-% 
-% snr = zeros(1, 6);
-% for n=1:6
-%     snr(n) = param_mp{n}.snr_channel(n);
-%     x = param_mp{n}.signal_received_constellation_derotate{n};
-%     figure;
-%     plot(x(:, 1), x(:, 2), '.')
-% end
+clc;
+close all;
+clear;
+load variable_power_11channels.mat
+
+power_dbm = -10:1:0;
+snr = zeros(1, length(power_dbm));
+for n=1:length(power_dbm)
+    snr(n) = param_mp{n}.snr_channel(n);
+    x = param_mp{n}.signal_received_constellation_derotate{6};
+    figure;
+    plot(x(:, 1), x(:, 2), '.')
+end
