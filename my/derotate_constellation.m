@@ -65,6 +65,13 @@ for cidx=1:param.channel_number
     [C_receive, ~] = sortrows([C_receive_amplitude, C_receive_angle], [1, 2]);
     
     %% Calculate angle to de-rotation
+    % to-do:
+    % for ook, should calculate the relative rotation between the two point
+    % clouds
+    % for 16qam, should calculate the relative rotation between the point
+    % clouds and the center of the constellation
+    % but for now, it is okay to roughly rotate the constellation for
+    % visualization purpose
     if param.constellation_size(cidx) == 2
         rotation_angle = mean(C_template(2, 2)-C_receive(2, 2));
     elseif param.constellation_size(cidx) == 16
