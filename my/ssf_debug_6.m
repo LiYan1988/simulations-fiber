@@ -77,3 +77,16 @@ end
 save debug6.mat
 
 %% Plot results
+% SNR
+clc;
+close all;
+clear;
+load debug6.mat
+
+snr = zeros(1, 6);
+for n=1:6
+    snr(n) = param_mp{n}.snr_channel(n);
+    x = param_mp{n}.signal_received_constellation_derotate{n};
+    figure;
+    plot(x(:, 1), x(:, 2), '.')
+end

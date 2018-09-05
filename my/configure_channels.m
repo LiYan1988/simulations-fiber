@@ -21,7 +21,7 @@ for n=1:N
 end
 
 % [Hz], spectrum grid size
-param.spectrum_grid_size = spectrum_grid_size*1e9;
+param.spectrum_grid_size = spectrum_grid_size;
 param.center_frequency_channel = param.spectrum_grid_size*...
     (linspace(0, N-1, N)-(N-1)/2);
 

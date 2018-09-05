@@ -67,59 +67,12 @@ for cidx=1:param.channel_number
     % idx is the index of centers
     % C is the coordinates of centers
     opts = statset('UseParallel', true);
-    [idx, C] = kmeans(signal, param.constellation_size(cidx), ...
+    [~, C] = kmeans(signal, param.constellation_size(cidx), ...
         'Display', 'off', 'maxiter', 1000, ...
         'Replicates', 64, 'Options', opts);
     
-    % center for each point
-    centers = C(idx, :);
-    % noise associated to each point
-    noise_per_point = sqrt(sum((signal - centers).^2, 2));
-    
-    % noise per constellation point
-    noise_per_cloud = zeros(param.constellation_size(cidx), 1);
-    for k=1:param.constellation_size(cidx)
-        noise_per_cloud(k) = mean(noise_per_point(idx==k));
-    end
-    
-    %%%%%%%%%%%%%%%%%%%%%
-    C_receive_amplitude = sqrt(sum(C.^2, 2));
-    C_receive_amplitude = C_receive_amplitude./max(C_receive_amplitude);
-    
-    % Remove noise in amplitude, this part can be automated by smarter
-    % algorithm. Hard code for speed now.
-    % This is needed because the received constellation cloud centers are
-    % sorted by their amplitudes and angles
-    if strcmp(param.channel_type{cidx}, 'ook')
-        % OOK
-        min_C = min(C_receive_amplitude);
-        max_C = max(C_receive_amplitude);
-        C_receive_amplitude(C_receive_amplitude==min_C) = 0;
-        C_receive_amplitude(C_receive_amplitude==max_C) = 1;
-    elseif strcmp(param.channel_type{cidx}, '16qam')
-        C_receive_amplitude(C_receive_amplitude>0.8723) = 1;
-        C_receive_amplitude((C_receive_amplitude<0.8723)&(C_receive_amplitude>0.5395)) = 0.74;
-        C_receive_amplitude(C_receive_amplitude<0.5395) = 0.33;
-    end
-    
-    C_receive_angle = angle(C(:, 1)+1i*C(:, 2))/pi;
-    
-    [~, C_idx] = sortrows([C_receive_amplitude, C_receive_angle], [1, 2]);
-    
-%     snr_per_cloud = sqrt(sum(C(C_idx, :).^2, 2))./noise_per_cloud(C_idx);
-%     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
-    %%%%%%%%%%%%%%%%%%%%%
-    
-    %     snr_per_cloud = sqrt(sum(C.^2, 2))./noise_per_cloud;
-    %     snr_total = mean(sqrt(sum(centers.^2, 2)))/mean(noise_per_point);
-    
     % centers of clouds in constellation diagrams
     param.cloud_centers{cidx} = C;
-    % SNR per clound
-%     param.snr_per_cloud{cidx} = snr_per_cloud;
-    % Total SNR
-%     param.snr_total{cidx} = snr_total;
-    % Points (in Nx2 vector) in the constellation
     param.signal_received_constellation{cidx} = signal;
     % Complex rx signal
     param.signal_rx_complex{cidx} = signal_received_out;
