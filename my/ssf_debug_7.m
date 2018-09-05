@@ -25,6 +25,8 @@ param.nsp = 1.8; % [1] spontaneous emission factor, NF=5.5
 param.h = 6.626*1e-34; % [J*s], [W*Hz^-2] Plank's constant
 param.nu = param.light_speed/param.wavelength*1.5; % [Hz], light speed is in fiber, so 1.5 can bring it back to normal light speed
 
+param.random_seed = 54790;
+
 %% Channel Parameters
 % Channel specific parameters, n channels should have n sets of parameters
 
@@ -50,56 +52,40 @@ filter_parameter((N-1)/2+1) = 0.2;
 % symbol in filter
 symbol_in_filter = 10*ones(1, N);
 
-random_seed = 54790;
-
 param = configure_channels(param, N, spectrum_grid_size, ...
-    channel_type, power_dbm, filter_parameter, symbol_in_filter, ...
-    random_seed);
+    channel_type, power_dbm, filter_parameter, symbol_in_filter);
 
 %% Test 
-number_of_channels = 1:2:11;
-param_mp = cell(1, length(number_of_channels)); % [dBm], power of each channel
+power_dbm = -10:1:10;
+param_mp = cell(1, length(power_dbm)); % [dBm], power of each channel
 
-parfor k=1:length(number_of_channels)    
-    param_temp = param;
-    
-    % Change 
-        
+parfor k=1:length(power_dbm)        
+    % Change channel uniform power
+    param_temp = configure_channels_default_2(param, power_dbm(k));
+
     % Generate Signal
     param_temp = generate_signals(param_temp);
-    
+
     % Propagation through a link
     param_temp = simulate_link1(param_temp);
-    
+
     param_mp{k} = param_temp;
 end
+
 %% Save results
-save debug6.mat
-
-%%
-
+save variable_power_11channels.mat
 
 %% Plot results
-% load mp8_simulation_varying_16qam_power.mat
-n_mp = length(param_mp);
-cidx = (param_mp{1}.channel_number+1)/2;
-snr_16qam = zeros(n_mp, 1);
-snr_5ook = zeros(n_mp, 1);
-for n=1:n_mp
-    snr_16qam(n) = param_mp{n}.snr_total{cidx}(1);
-    snr_5ook(n) = param_mp{n}.snr_total{cidx-1}(1);
-end
-
-figure;
-box on;
-grid on;
-hold on;
-title('OOK Power @-1dBm')
-h1 = plot(number_of_channels/1e9, 10*log10(snr_16qam), 'displayname', '16 QAM', ...
-    'linewidth', 2);
-h2 = plot(number_of_channels/1e9, 10*log10(snr_5ook), 'displayname', '5th OOK', ...
-    'linewidth', 2);
-xlabel('Channel spacing (GHz)')
-ylabel('SNR (dB)')
-legend([h1, h2])
-pbaspect([7 4 1])
+% SNR
+% clc;
+% close all;
+% clear;
+% load variable_power_11channels.mat
+% 
+% snr = zeros(1, 6);
+% for n=1:6
+%     snr(n) = param_mp{n}.snr_channel(n);
+%     x = param_mp{n}.signal_received_constellation_derotate{n};
+%     figure;
+%     plot(x(:, 1), x(:, 2), '.')
+% end

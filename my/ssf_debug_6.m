@@ -63,25 +63,25 @@ parfor k=1:length(number_of_channels)
     % Change number of channels
     N = number_of_channels(k);
     param_temp = configure_channels_default_1(param, N);
-        
+
     % Generate Signal
     param_temp = generate_signals(param_temp);
-    
+
     % Propagation through a link
     param_temp = simulate_link1(param_temp);
-    
+
     param_mp{k} = param_temp;
 end
 
 %% Save results
-save debug6.mat
+save variable_ook_channel_numbers_power_-1dbm.mat
 
 %% Plot results
 % SNR
 clc;
 close all;
 clear;
-load debug6.mat
+load variable_ook_channel_numbers_power_-1dbm.mat
 
 snr = zeros(1, 6);
 for n=1:6
