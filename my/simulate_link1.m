@@ -11,7 +11,7 @@ fbg_beta3 = -param.beta3;
 fbg_length_1 = 82; % 80 % [km]
 fbg_length_2 = 82; % 90 % [km]
 
-for n=1:1 %4
+for n=1:4
     % Split Step Fourier in SSMF
     param = split_step_single_polarization(param);
     
