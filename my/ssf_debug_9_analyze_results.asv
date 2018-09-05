@@ -1,0 +1,38 @@
+clc;
+clear;
+close all;
+
+% Calculate EVM and BER
+
+%%
+load debug_9.mat
+
+%%
+cidx = 6;
+tx = param.signal_tx_complex{cidx};
+rx = param.signal_rx_complex{cidx};
+
+objfcn = @(v)v(1)+v(2)*rx - tx;
+
+opts = optimoptions(@lsqnonlin,'Display','off');
+x0 = (1+1i)*[1;1]; % arbitrary initial guess
+[x_sol,resnorm,residuals,exitflag,output] = lsqnonlin(objfcn,x0,[],[],opts);
+x_sol,resnorm,exitflag,output.firstorderopt
+
+rx2 = x_sol(1) + x_sol(2)*rx;
+figure; 
+hold on;
+plot(real(rx2), imag(rx2), '.')
+plot(real(tx), imag(tx), 'x')
+
+%%
+tx_unique = unique(tx);
+a = abs(rx2 - tx_unique.').^2;
+[~, pidx] = min(a, [], 2);
+
+bits_rx = de2bi(pidx)'-0.5;
+bits_tx = param.data_bit_channel{cidx}';
+
+[u, l] = xcorr(bits_rx(:), bits_tx(:));
+
+plot(l, u)
