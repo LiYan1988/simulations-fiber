@@ -31,10 +31,10 @@ a = abs(rx2 - tx_unique.');
 [u, pidx] = min(a, [], 2);
 v = abs(rx2 - tx);
 
-figure; 
-hold on;
-plot(u)
-plot(v)
+% figure; 
+% hold on;
+% plot(u)
+% plot(v)
 
 ser = sum(u<v)/length(u);
 

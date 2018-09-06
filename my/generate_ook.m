@@ -26,9 +26,9 @@ s = (param.delay_filter_channel(c)+1):...
 data_mod_t_tmp = data_mod_t_tmp(s);
 
 % suppress carrier
-xf = ft(data_mod_t_tmp, param.df);
-xf(length(xf)/2+1) = xf(length(xf)/2+1)*0.01;
-data_mod_t_tmp = ift(xf, param.df);
+% xf = ft(data_mod_t_tmp, param.df);
+% xf(length(xf)/2+1) = xf(length(xf)/2+1)*0.01;
+% data_mod_t_tmp = ift(xf, param.df);
 
 % record generated bits and symbols
 param.data_bit_channel{c} = data_bit;

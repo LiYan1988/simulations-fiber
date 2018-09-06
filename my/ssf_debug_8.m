@@ -82,7 +82,7 @@ for k=1:length(power_dbm) % power of 16QAM
 end
 
 %% Save results
-save variable_power_11channels_2.mat
+save('variable_power_11channels_2.mat','-v7.3')
 
 %% Plot results
 % SNR
