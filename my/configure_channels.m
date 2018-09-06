@@ -22,8 +22,13 @@ end
 
 % [Hz], spectrum grid size
 param.spectrum_grid_size = spectrum_grid_size;
-param.center_frequency_channel = param.spectrum_grid_size*...
-    (linspace(0, N-1, N)-(N-1)/2);
+if mod(N, 2)==1
+    param.center_frequency_channel = param.spectrum_grid_size*...
+        (linspace(0, N-1, N)-(N-1)/2);
+elseif mod(N, 2)==0
+    param.center_frequency_channel = param.spectrum_grid_size*...
+        (linspace(0, N-1, N)-N/2);
+end
 
 % [W], power of channel in time domain, in contrast to the frequency domain
 % PSD measured in W/Hz

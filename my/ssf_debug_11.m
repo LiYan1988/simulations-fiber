@@ -2,12 +2,13 @@ clc;
 clear;
 close all;
 
-% Simulate varying channel spacing, all channel power equals -1 dBm
+% Simulate varying channel number, including even number of channels
+% 16QAM power 0dBm, OOK power -6dBm
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*640*1e9; % [Hz], should be common multiples of all channels' bandwidths
-param.fn = 2^17; % number of spectrum points
+param.fmax = 2*pi*1280*1e9; % [Hz], should be common multiples of all channels' bandwidths
+param.fn = 2^18; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
@@ -42,7 +43,7 @@ channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
 
 % [W], power of channel in time domain, in contrast to the frequency domain
 % PSD measured in W/Hz
-power_dbm = -1*ones(N, 1);
+number_of_channel = -1*ones(N, 1);
 
 % filter parameter
 filter_parameter = 0.7*ones(1, N);
@@ -53,55 +54,27 @@ filter_parameter((N-1)/2+1) = 0.2;
 symbol_in_filter = 10*ones(1, N);
 
 param = configure_channels(param, N, spectrum_grid_size, ...
-    channel_type, power_dbm, filter_parameter, symbol_in_filter);
+    channel_type, number_of_channel, filter_parameter, symbol_in_filter);
 
 %% Test
-power_dbm = -15:1:6;
-param_mp = cell(length(power_dbm)); % [dBm], power of each channel
-time_elapsed = zeros(size(power_dbm));
+number_of_channel = 1:1:40; % total number of channels
+param_mp = cell(size(number_of_channel));
 
-for k=1:length(power_dbm) % power of 16QAM
-    fprintf('Iteration %d of %d started.\n', k, length(power_dbm))
-    t = tic;
-    parfor m=1:length(power_dbm) % power of OOK
-        % Change channel uniform power
-        param_temp = configure_channels_default_3(param, power_dbm(k),...
-            power_dbm(m));
-        
-        % Generate Signal
-        param_temp = generate_signals(param_temp);
-        
-        % Propagation through a link
-        param_temp = simulate_link1(param_temp);
-        
-        param_mp{k, m} = param_temp;
-    end
-    time_elapsed(k) = toc(t);
-    fprintf('Iteration %d of %d finished.\n', k, length(power_dbm))
-    fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
-        time_elapsed(k)/60, sum(time_elapsed)/60)
+t = tic;
+parfor m=1:length(number_of_channel) % power of OOK
+    % Change channel uniform power
+    param_temp = configure_channels_default_1(param, number_of_channel(m));
     
-    fprintf('------------------------------------------\n')
-    fprintf('\n')
+    % Generate Signal
+    param_temp = generate_signals(param_temp);
+    
+    % Propagation through a link
+    param_temp = simulate_link1(param_temp);
+    
+    param_mp{m} = param_temp;
 end
+time_elapsed = toc(t);
+
 
 %% Save results
-save('variable_power_11channels_2.mat','-v7.3')
-
-%% Plot results
-% SNR
-% clc;
-% close all;
-% clear;
-% load variable_power_11channels.mat
-% 
-% snr = zeros(1, length(power_dbm));
-% for n=1:length(power_dbm)
-%     snr(n) = param_mp{n}.snr_channel(6);
-%     x = param_mp{n}.signal_received_constellation_derotate{6};
-%     figure;
-%     plot(x(:, 1), x(:, 2), '.')
-% end
-% 
-% figure;
-% plot(power_dbm, snr)
+save('debug_11_variable_channel_number.mat','-v7.3')
