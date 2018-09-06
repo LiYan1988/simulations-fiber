@@ -14,7 +14,7 @@ channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
 % [W], power of channel in time domain, in contrast to the frequency domain
 % PSD measured in W/Hz
 power_dbm = power_dbm_ook*ones(N, 1); % power of OOK
-power_dbm((N-1)/2) = power_dbm_16qam;
+power_dbm((N-1)/2+1) = power_dbm_16qam;
 
 % filter parameter
 filter_parameter = 0.7*ones(1, N);

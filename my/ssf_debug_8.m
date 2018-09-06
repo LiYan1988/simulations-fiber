@@ -58,11 +58,11 @@ param = configure_channels(param, N, spectrum_grid_size, ...
 %% Test
 power_dbm = -6:1:3;
 param_mp = cell(length(power_dbm)); % [dBm], power of each channel
+time_elapsed = zeros(size(power_dbm));
 
-t0 = cputime;
 for k=1:length(power_dbm) % power of 16QAM
     fprintf('Iteration %d of %d started.\n', k, length(power_dbm))
-    t = cputime;
+    t = tic;
     parfor m=1:length(power_dbm) % power of OOK
         % Change channel uniform power
         param_temp = configure_channels_default_3(param, power_dbm(k),...
@@ -76,9 +76,13 @@ for k=1:length(power_dbm) % power of 16QAM
         
         param_mp{k, m} = param_temp;
     end
+    time_elapsed(k) = toc(t);
     fprintf('Iteration %d of %d finished.\n', k, length(power_dbm))
     fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
-        (cputime-t)/60, (cputime-t0)/60)
+        time_elapsed(k)/60, sum(time_elapsed)/60)
+    
+    fprintf('------------------------------------------\n')
+    fprintf('\n')
 end
 
 %% Save results
