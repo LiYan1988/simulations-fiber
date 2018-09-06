@@ -43,4 +43,4 @@ param = derotate_constellation(param);
 param = calculate_snr(param);
 
 % Calculate SER and EVM
-param = calculate_ser_evm(param)
+param = calculate_ser_evm(param);

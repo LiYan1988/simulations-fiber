@@ -27,3 +27,11 @@ time_elapsed = toc;
 
 %%
 save('variable_power_11channels_2.mat','-v7.3')
+
+%% 
+time_elapsed = zeros(10, 1);
+parfor n=1:10
+    t = tic;
+    surf(peaks(40));
+    time_elapsed(n) = toc(t);
+end

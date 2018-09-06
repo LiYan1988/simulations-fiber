@@ -1,6 +1,9 @@
 function param = configure_channels_default_1(param, N)
 % Only change the number of channels, other parameters are the default
 % values
+% The optimal power is used
+% OOK power is -6 dBm
+% 16QAM power is 0 dBm
 
 % [Hz], spectrum grid size
 spectrum_grid_size = 50*1e9;
@@ -11,7 +14,8 @@ channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
 
 % [W], power of channel in time domain, in contrast to the frequency domain
 % PSD measured in W/Hz
-power_dbm = -1*ones(N, 1); 
+power_dbm = -6*ones(N, 1); 
+power_dbm((N-1)/2+1) = 0;
 
 % filter parameter
 filter_parameter = 0.7*ones(1, N);
