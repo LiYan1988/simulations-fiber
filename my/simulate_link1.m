@@ -41,3 +41,6 @@ param = derotate_constellation(param);
 
 % Calculate SNR for each channel
 param = calculate_snr(param);
+
+% Calculate SER and EVM
+param = calculate_ser_evm(param)
