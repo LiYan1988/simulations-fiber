@@ -75,6 +75,5 @@ parfor m=1:length(number_of_channel) % power of OOK
 end
 time_elapsed = toc(t);
 
-
 %% Save results
 save('debug_11_variable_channel_number.mat','-v7.3')

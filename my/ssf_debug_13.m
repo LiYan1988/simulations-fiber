@@ -2,7 +2,11 @@ clc;
 clear;
 close all;
 
-% find a bug in OOk generation
+% Simulate with 3 channels, OOK, 16QAM, OOK
+% Variables:
+%   1. Change OOK and 16QAM powers
+%   2. Change baud rate of OOK and QAM channels
+%   3. Change channel spacing between QAM and OOK channels
 
 %% Fiber Parameters
 % -------------- Primary parameters
@@ -27,6 +31,34 @@ param.nu = param.light_speed/param.wavelength*1.5; % [Hz], light speed is in fib
 
 param.random_seed = 54790;
 
+%% Channel Parameters
+% Channel specific parameters, n channels should have n sets of parameters
+
+% number of channels, should be an odd number
+% N = 3;
+% 
+% % [Hz], spectrum grid size
+% spectrum_grid_size = 50*1e9;
+% 
+% % channel type
+% channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
+%     repmat({'ook'}, (N-1)/2, 1)];
+% 
+% % [W], power of channel in time domain, in contrast to the frequency domain
+% % PSD measured in W/Hz
+% power_dbm = -1*ones(N, 1);
+% 
+% % filter parameter
+% filter_parameter = 0.7*ones(1, N);
+% % For 16QAM use square-root RRC, then specify the roll-off factor
+% filter_parameter((N-1)/2+1) = 0.2;
+% 
+% % symbol in filter
+% symbol_in_filter = 10*ones(1, N);
+% 
+% param = configure_channels(param, N, spectrum_grid_size, ...
+%     channel_type, power_dbm, filter_parameter, symbol_in_filter);
+
 %% Test
 power_dbm = 0;
 param_mp = cell(length(power_dbm)); % [dBm], power of each channel
@@ -37,7 +69,7 @@ power_dbm_qam = 0;
 gauss_factor = 0.7;
 bw_ghz_ook = 10*1e9;
 bw_ghz_qam = 32*1e9;
-grid_ghz = 200*1e9;
+grid_ghz = 50*1e9;
 
 for k=1:length(power_dbm) % power of 16QAM
     fprintf('Iteration %d of %d started.\n', k, length(power_dbm))
@@ -79,5 +111,5 @@ save('ssf_debug_12_variable_parameters.mat','-v7.3')
 %% Plot results
 scatterplot(param_temp.signal_received_constellation_derotate{1})
 
-% figure; hold on; grid on; box on;
-% plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2))
+figure; hold on; grid on; box on;
+plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2))
