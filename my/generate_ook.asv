@@ -4,15 +4,12 @@ function [data_mod_t_tmp, param] = generate_ook(param, c)
 % Generate bit stream, 0 at the start and end of the bit stream
 data_bit = randi([0, 1], param.symbol_number(c)-2, param.bit_per_symbol(c));
 data_bit_tmp = [0; data_bit; 0];
-% data_mod_t_tmp = ones(param.symbol_number(c), param.sample_per_symbol(c));
-% mask = repmat(data_bit_tmp, 1, param.sample_per_symbol(c));
-% data_mod_t_tmp = (data_mod_t_tmp.*mask)';
-% data_mod_t_tmp = data_mod_t_tmp(:);
-data_mod_t_tmp = repmat(data_bit_tmp, 1, param.sample_per_symbol(c))';
-data_mod_t_tmp(2:end, :) = 0;
+data_mod_t_tmp = ones(param.symbol_number(c), param.sample_per_symbol(c));
+mask = repmat(data_bit_tmp, 1, param.sample_per_symbol(c));
+data_mod_t_tmp = (data_mod_t_tmp.*mask)';
 data_mod_t_tmp = data_mod_t_tmp(:);
 
-% if it is OOK, use Gauss filter 
+% if it is OOK, use Gauss  as low pass filter
 param.filter_tx_channel{c} = gaussdesign(param.filter_parameter(c), ...
     param.symbol_in_filter(c), param.sample_per_symbol(c));
 
