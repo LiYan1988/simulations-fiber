@@ -5,8 +5,10 @@ close all;
 % Simulate with 3 channels, OOK, 16QAM, OOK
 % Variables:
 %   1. Change OOK and 16QAM powers
-%   2. Change baud rate of OOK and QAM channels
-%   3. Change channel spacing between QAM and OOK channels
+%   
+%   2. Change channel spacing between QAM and OOK channels
+
+% Currently do not change baud rates
 
 %% Fiber Parameters
 % -------------- Primary parameters
@@ -31,85 +33,62 @@ param.nu = param.light_speed/param.wavelength*1.5; % [Hz], light speed is in fib
 
 param.random_seed = 54790;
 
-%% Channel Parameters
-% Channel specific parameters, n channels should have n sets of parameters
-
-% number of channels, should be an odd number
-% N = 3;
-% 
-% % [Hz], spectrum grid size
-% spectrum_grid_size = 50*1e9;
-% 
-% % channel type
-% channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
-%     repmat({'ook'}, (N-1)/2, 1)];
-% 
-% % [W], power of channel in time domain, in contrast to the frequency domain
-% % PSD measured in W/Hz
-% power_dbm = -1*ones(N, 1);
-% 
-% % filter parameter
-% filter_parameter = 0.7*ones(1, N);
-% % For 16QAM use square-root RRC, then specify the roll-off factor
-% filter_parameter((N-1)/2+1) = 0.2;
-% 
-% % symbol in filter
-% symbol_in_filter = 10*ones(1, N);
-% 
-% param = configure_channels(param, N, spectrum_grid_size, ...
-%     channel_type, power_dbm, filter_parameter, symbol_in_filter);
-
 %% Test
-power_dbm = 0;
-param_mp = cell(length(power_dbm)); % [dBm], power of each channel
-time_elapsed = zeros(size(power_dbm));
+power_dbm_ook = -10:1:6;
+power_dbm_qam = -10:1:6;
+bw_ghz_ook = 10*1e9; %(5:5:30)*1e9;
+bw_ghz_qam = 32*1e9; %(5:5:50)*1e9;
+grid_ghz = (30:5:200)*1e9;
 
-power_dbm_ook = -6;
-power_dbm_qam = 0;
-gauss_factor = 0.7;
-bw_ghz_ook = 10*1e9;
-bw_ghz_qam = 32*1e9;
-grid_ghz = 50*1e9;
+% elapsed time
+time_elapsed = zeros(length(power_dbm_ook), length(power_dbm_qam));
 
-for k=1:length(power_dbm) % power of 16QAM
-    fprintf('Iteration %d of %d started.\n', k, length(power_dbm))
-    t = tic;
-    for m=1:length(power_dbm) % power of OOK
-        % Change channel uniform power
-        param_temp = configure_channels_default_5(param, power_dbm_qam,...
-            power_dbm_ook, gauss_factor, bw_ghz_qam, bw_ghz_ook, grid_ghz);
-        
-        % Generate Signal
-        param_temp = generate_signals(param_temp);
-        
-        figure; hold on; grid on; box on;
-        plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_current).^2))
-        
-        figure; hold on; grid on; box on;
-        plot(param_temp.t_plot, param_temp.data_mod_t_channel{1})
-        
-        figure; hold on; grid on; box on;
-        plot(mod(1:param_temp.fn, 4*param_temp.sample_per_symbol(1))*param_temp.dt, circshift(param_temp.data_mod_t_channel{1}, 32), '.')
-        
-        % Propagation through a link
-        param_temp = simulate_link1(param_temp);
-        
-        param_mp{k, m} = param_temp;
+n = 1;
+for k=1:length(power_dbm_qam)
+    for m=1:length(power_dbm_ook)
+        fprintf('Iteration %d of %d started.\n', n, length(power_dbm_qam)*length(power_dbm_ook))
+        fprintf('16QAM power %.1f dBm, OOK power %.1f dBm.\n', power_dbm_qam(k), power_dbm_ook(m))
+        t = tic;
+        param_mp = cell(1, length(grid_ghz));
+        power_dbm_qam_temp = power_dbm_qam(k);
+        power_dbm_ook_temp = power_dbm_ook(k);
+        parfor g=1:length(grid_ghz)
+            param_temp = configure_channels_default_5(param, ...
+                power_dbm_qam_temp, ...
+                power_dbm_ook_temp, ...
+                bw_ghz_qam, bw_ghz_ook, ...
+                grid_ghz(g));
+            
+            % Generate Signal
+            param_temp = generate_signals(param_temp);
+            
+            % Propagation through a link
+            param_temp = simulate_link1(param_temp);
+            
+            param_mp{g} = param_temp;
+        end
+        time_elapsed(k, m) = toc(t);
+        fprintf('Iteration finished.\n')
+        fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
+            time_elapsed(k,m)/60, sum(time_elapsed(:))/60)
+        save(sprintf('ssf_debug_13_qam_%d_ook_%d.mat', k, m),'-v7.3')
+        fprintf('------------------------------------------\n')
+        fprintf('\n')
+        n = n+1;
     end
-    time_elapsed(k) = toc(t);
-    fprintf('Iteration %d of %d finished.\n', k, length(power_dbm))
-    fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
-        time_elapsed(k)/60, sum(time_elapsed)/60)
-    
-    fprintf('------------------------------------------\n')
-    fprintf('\n')
 end
 
-%% Save results
-save('ssf_debug_12_variable_parameters.mat','-v7.3')
-
 %% Plot results
-scatterplot(param_temp.signal_received_constellation_derotate{1})
-
-figure; hold on; grid on; box on;
-plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2))
+% scatterplot(param_temp.signal_received_constellation_derotate{1})
+%
+% figure; hold on; grid on; box on;
+% plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2))
+%
+% figure; hold on; grid on; box on;
+% plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_current).^2))
+%
+% figure; hold on; grid on; box on;
+% plot(param_temp.t_plot, param_temp.data_mod_t_channel{1})
+%
+% figure; hold on; grid on; box on;
+% plot(mod(1:param_temp.fn, 4*param_temp.sample_per_symbol(1))*param_temp.dt, circshift(param_temp.data_mod_t_channel{1}, 32), '.')
