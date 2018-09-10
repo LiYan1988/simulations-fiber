@@ -46,12 +46,16 @@ time_elapsed = zeros(length(power_dbm_ook), length(power_dbm_qam));
 n = 1;
 for k=1:length(power_dbm_qam)
     for m=1:length(power_dbm_ook)
+        if n<113
+            n = n+1;
+            continue;
+        end
         fprintf('Iteration %d of %d started.\n', n, length(power_dbm_qam)*length(power_dbm_ook))
         fprintf('16QAM power %.1f dBm, OOK power %.1f dBm.\n', power_dbm_qam(k), power_dbm_ook(m))
         t = tic;
         param_mp = cell(1, length(grid_ghz));
         power_dbm_qam_temp = power_dbm_qam(k);
-        power_dbm_ook_temp = power_dbm_ook(k);
+        power_dbm_ook_temp = power_dbm_ook(m);
         parfor g=1:length(grid_ghz)
             param_temp = configure_channels_default_5(param, ...
                 power_dbm_qam_temp, ...

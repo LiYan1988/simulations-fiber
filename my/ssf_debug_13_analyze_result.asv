@@ -1,0 +1,33 @@
+clc;
+clear;
+close all;
+
+% Analyze results from ssf_debug_13.m
+
+%% Test
+power_dbm_ook = -10:1:6;
+power_dbm_qam = -10:1:6;
+bw_ghz_ook = 10*1e9; %(5:5:30)*1e9;
+bw_ghz_qam = 32*1e9; %(5:5:50)*1e9;
+grid_ghz = (30:5:200)*1e9;
+
+% columns: ook power, qam power, grid_ghz, ook snr, qam snr
+results = zeros(0, 5);
+
+%%
+u = 0;
+listing = dir;
+for n=1:length(listing)
+    if length(listing(n).name)>17 && strcmp(listing(n).name(1:17), 'ssf_debug_13_qam_')
+        fprintf('%s\n', listing(n).name)
+        
+        load(listing(n).name)
+        for g=1:length(param_mp)
+            u = u+1;
+            results(u, 1) = power_dbm_ook_temp;
+            results(u, 2) = power_dbm_qam_temp;
+            results(u, 3) = param_mp(g).spectrum_grid_size;
+            
+        end
+    end
+end
