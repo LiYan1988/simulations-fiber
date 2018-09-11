@@ -45,19 +45,33 @@ for k=1:length(power_dbm) % power of 16QAM
     for m=1:length(power_dbm) % power of OOK
         % Change channel uniform power
         param_temp = configure_channels_default_5(param, power_dbm_qam,...
-            power_dbm_ook, gauss_factor, bw_ghz_qam, bw_ghz_ook, grid_ghz);
+            power_dbm_ook, bw_ghz_qam, bw_ghz_ook, grid_ghz);
         
         % Generate Signal
         param_temp = generate_signals(param_temp);
         
+        % spectrum
         figure; hold on; grid on; box on;
-        plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_current).^2))
+        plot(param_temp.f_plot, abs(param_temp.data_mod_f_current).^2,...
+            'linewidth', 2)
+        set(gca, 'YScale', 'log')
+        xlim([-250, 250])
+        ylim([1e-20, 1e-11])
+        xlabel('Frequency (GHz)')
+        ylabel('PSD (W/Hz)')
+        pbaspect([7 4 1])
         
-        figure; hold on; grid on; box on;
-        plot(param_temp.t_plot, param_temp.data_mod_t_channel{1})
+%         figure; hold on; grid on; box on;
+%         plot(param_temp.t_plot, param_temp.data_mod_t_channel{1})
         
+        % eye diagram
         figure; hold on; grid on; box on;
-        plot(mod(1:param_temp.fn, 4*param_temp.sample_per_symbol(1))*param_temp.dt, circshift(param_temp.data_mod_t_channel{1}, 32), '.')
+        plot(mod(1:param_temp.fn, 4*param_temp.sample_per_symbol(1))*param_temp.dt*1e9, ...
+            circshift(param_temp.data_mod_t_channel{1}, 32)/max(param_temp.data_mod_t_channel{1}(:)), '.')
+        pbaspect([7, 4, 1])
+        xlabel('Time (ns)')
+        ylabel('Amplitude')
+        title('OOK channel eye diagram')
         
         % Propagation through a link
         param_temp = simulate_link1(param_temp);
