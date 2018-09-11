@@ -13,6 +13,7 @@ grid_ghz = (30:5:200)*1e9;
 
 % columns: ook power, qam power, grid_ghz, ook1 snr, ook2 snr, qam snr
 results = zeros(0, 6);
+results_ser = zeros(0, 3);
 
 %%
 u = 0;
@@ -32,6 +33,7 @@ for n=1:length(listing)
             results(u, 4) = param_mp{g}.snr_channel(1);
             results(u, 5) = param_mp{g}.snr_channel(3);
             results(u, 6) = param_mp{g}.snr_channel(2);
+            results_ser(u, :) = param_mp{g}.ser_channel;
         end
     end
 end
@@ -45,4 +47,4 @@ plot(results(:, 7))
 plot(results(:, 8))
 plot(results(:, 6))
 
-save ssf_debug_13_current_result.mat results
+save ssf_debug_13_current_result.mat results results_ser

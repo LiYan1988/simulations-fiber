@@ -22,10 +22,10 @@ power_dbm_qam = -4;
 idx = (results(:, 1)==power_dbm_ook) & (results(:, 2)==power_dbm_qam);
 a = results(idx, :);
 
-plot(a(:, 3)/1e9, a(:, 6), 'displayname', '16 QAM')
+plot(a(:, 3)/1e9, 1./a(:, 6), 'displayname', '16 QAM')
 % plot(a(:, 3), a(:, 7))
-plot(a(:, 3)/1e9, a(:, 8), 'displayname', 'OOK')
-legend('Location', 'Northwest')
+plot(a(:, 3)/1e9, 1./a(:, 8), 'displayname', 'OOK')
+legend('Location', 'Best')
 title(sprintf('QAM power=%d dBm, OOK power=%d dBm', ...
     power_dbm_qam, power_dbm_ook))
 xlabel('Channel spacing (GHz)')
