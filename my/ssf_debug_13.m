@@ -46,7 +46,7 @@ time_elapsed = zeros(length(power_dbm_ook), length(power_dbm_qam));
 n = 1;
 for k=1:length(power_dbm_qam)
     for m=1:length(power_dbm_ook)
-        if n<113
+        if n<231
             n = n+1;
             continue;
         end
