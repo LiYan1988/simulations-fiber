@@ -29,4 +29,4 @@ legend('Location', 'Best')
 title(sprintf('QAM power=%d dBm, OOK power=%d dBm', ...
     power_dbm_qam, power_dbm_ook))
 xlabel('Channel spacing (GHz)')
-ylabel('Linear SNR')
+ylabel('Inverse Linear SNR')
