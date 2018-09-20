@@ -19,3 +19,11 @@ results = array2table(results, 'VariableNames', {'power_OOK_dBm', ...
     'power_QAM_dBm', 'spacing_GHz', 'snr_QAM', 'snr_OOK_mean'});
 
 writetable(results, 'snr_vs_power_spacing_results.csv')
+
+%% What power range is suitable?
+a = results{results{:, 'spacing_GHz'}==50, :};
+power_ook = vec2mat(a(:, 1), 15);
+power_qam = vec2mat(a(:, 2), 15);
+snr_qam = vec2mat(a(:, 4), 15);
+snr_ook = vec2mat(a(:, 5), 15);
+surf(power_ook, power_qam, snr_qam);
