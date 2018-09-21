@@ -1,2 +1,3 @@
 *.mat
 !my/ssf_debug_13_current_result.mat
+!my/ssf_a_1_lattice_snr.mat

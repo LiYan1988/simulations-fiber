@@ -77,3 +77,17 @@ end
 
 save(sprintf('ssf_a_1_lattice.mat'), '-v7.3')
 
+%% Process
+snr_results = zeros(510, 4);
+n = 1;
+for k=1:length(power_dbm_qam)
+    for m=1:length(bw_hz_qam)
+        snr_results(n, 1) = power_dbm_qam(k);
+        snr_results(n, 2) = bw_hz_qam(m)/1e9;
+        snr_results(n, 3) = param_mp{k, m}.snr_channel(2);
+        snr_results(n, 4) = (param_mp{k, m}.snr_channel(1)+param_mp{k, m}.snr_channel(3))/2;
+        n = n+1;
+    end
+end
+
+save('ssf_a_1_lattice_snr.mat', 'snr_results', '-v7.3')
