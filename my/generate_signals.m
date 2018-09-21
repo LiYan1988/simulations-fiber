@@ -3,7 +3,7 @@ function param = generate_signals(param)
 param.df = 2*param.fmax/param.fn; % [Hz], frequency resolution
 % param.f = param.df*[(0:param.fn/2-1) (-param.fn/2:-1)]';
 param.f = (-param.fn/2:param.fn/2-1)'*param.df;
-% f axis for plotting the spectrum, unit is [GHz]
+% f axis for plotting the spectrum, unit is [Hz]
 param.f_plot = param.f/(2*pi)/1e9;
 % frequency mask as a low-pass filter
 param.f_mask = (param.f<2*pi*param.spectrum_grid_size/2)&(param.f>-2*pi*param.spectrum_grid_size/2);

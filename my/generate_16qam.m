@@ -33,7 +33,7 @@ data_mod_t_tmp = upfirdn(data_mod_t_tmp, param.filter_tx_channel{c}, ...
 
 % remove head and tail
 A = param.symbol_in_filter(c)/2; % half filter length
-u = ((A-0.5)*param.sample_per_symbol(c)+1):...
-    ((A-0.5)*param.sample_per_symbol(c)+param.fn); % index of the signal
+u = round((A-0.5)*param.sample_per_symbol(c)+1):...
+    round((A-0.5)*param.sample_per_symbol(c)+param.fn); % index of the signal
 data_mod_t_tmp = data_mod_t_tmp(u);
 

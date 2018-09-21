@@ -1,6 +1,6 @@
 function param = configure_channels_default_5(param, ...
     power_dbm_qam, power_dbm_ook, ...
-    bw_ghz_qam, bw_ghz_ook, grid_ghz)
+    bw_hz_qam, bw_hz_ook, grid_hz)
 % Change channel parameters
 %   1. power of 16QAM and OOK
 %       power_dbm_16qam
@@ -13,7 +13,7 @@ function param = configure_channels_default_5(param, ...
 N = 3;
 
 % [Hz], spectrum grid size
-spectrum_grid_size = grid_ghz;
+spectrum_grid_size = grid_hz;
 
 % channel type
 channel_type = [repmat({'ook'}, (N-1)/2, 1); {'16qam'}; ...
@@ -34,4 +34,4 @@ symbol_in_filter = 10*ones(1, N);
 
 param = configure_channels_2(param, N, spectrum_grid_size, ...
     channel_type, power_dbm, filter_parameter, symbol_in_filter, ...
-    bw_ghz_ook, bw_ghz_qam);
+    bw_hz_ook, bw_hz_qam);
