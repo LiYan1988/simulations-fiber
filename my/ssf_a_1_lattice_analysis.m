@@ -36,4 +36,4 @@ contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [50, 100, 200], ...
 xlabel('Baud rate (GHz)')
 ylabel('Power (dBm)')
 % colorbar
-title(sprintf('OOK SNR > %d', ook_th))
+title(sprintf('QAM SNR with OOK SNR > %d', ook_th))
