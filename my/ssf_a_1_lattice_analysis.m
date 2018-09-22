@@ -24,12 +24,16 @@ end
 
 %% Plot contour
 snr_qam2 = snr_qam;
-snr_qam2(snr_ook<10) = 0;
+ook_th = 20;
+snr_qam2(snr_ook<ook_th) = 0;
 
 figure; hold on;
 grid on;
 box on;
-contour(bw_qam_ghz, power_qam_dbm, snr_qam2)
+contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [50, 100, 200], ...
+    'showtext', 'on', 'linewidth', 2)
 % contour(bw_qam_ghz, power_qam_dbm, snr_ook)
 xlabel('Baud rate (GHz)')
 ylabel('Power (dBm)')
+% colorbar
+title(sprintf('OOK SNR > %d', ook_th))
