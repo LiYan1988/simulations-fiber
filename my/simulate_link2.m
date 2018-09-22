@@ -8,8 +8,6 @@ function param = simulate_link2(param, n_spans_0)
 % FBG parameters
 fbg_beta2 = -param.beta2;
 fbg_beta3 = -param.beta3;
-fbg_length_1 = 80; % 80 % [km]
-fbg_length_2 = 90; % 90 % [km]
 
 for n=1:n_spans_0
     % Split Step Fourier in SSMF
@@ -17,7 +15,7 @@ for n=1:n_spans_0
     
     % FBG
     [signal_t_out, signal_f_out] = fbg_propagation(...
-        param.data_mod_t_current, fbg_beta2, fbg_beta3, fbg_length_1, param);
+        param.data_mod_t_current, fbg_beta2, fbg_beta3, param.fbg_length_1, param);
     
     param.data_mod_t_current = signal_t_out;
     param.data_mod_f_current = signal_f_out;
@@ -27,13 +25,13 @@ end
 % compression
 param = split_step_single_polarization(param);
 [signal_t_out, signal_f_out] = fbg_propagation(...
-    param.data_mod_t_current, fbg_beta2, fbg_beta3, fbg_length_2, param);
+    param.data_mod_t_current, fbg_beta2, fbg_beta3, param.fbg_length_2, param);
 param.data_mod_t_current = signal_t_out;
 param.data_mod_f_current = signal_f_out;
 
 %% Receiver 
 % Recive signal and find centers of point clouds in constellations
-dispersion_residual = param.span_length*5-fbg_length_1*4-fbg_length_2;
+dispersion_residual = param.span_length*5-param.fbg_length_1*4-param.fbg_length_2;
 param = center_constellation(param, dispersion_residual);
 
 % Rotate constellations back for visualization
