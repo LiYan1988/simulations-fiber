@@ -24,9 +24,11 @@ uu = uu*exp(0.5*param.alpha*param.span_length);
 
 if param.ase_exist
     % Power spectral density (PSD) of ASE noise, G=(exp(alpha*L)-1)*h*nu*nsp
-    power_noise = (exp(param.alpha*param.span_length)-1)*param.h*param.nu*param.nsp;
+%     power_noise = (exp(param.alpha*param.span_length)-1)*param.h*param.nu*param.nsp;
+    power_noise = (exp(param.alpha*param.span_length))*param.h*param.nu*param.nsp;
     % Convert PSD to signal power in the time domain
-    power_noise = power_noise*param.fn*param.df;
+%     power_noise = power_noise*param.fn*param.df;
+    power_noise = power_noise*param.fn*param.df/(2*pi);
     % add noise
     uu = uu + sqrt(0.5*power_noise)*(randn(size(uu, 1), 1)+1i*randn(size(uu, 1), 1));
 end
