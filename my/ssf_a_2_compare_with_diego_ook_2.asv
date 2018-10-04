@@ -40,6 +40,7 @@ grid_hz = 50*1e9;
 time_elapsed = zeros(size(power_dbm_ook));
 param_mp = cell(size(power_dbm_ook));
 
+
 parfor n=1:length(power_dbm_ook)
     fprintf('%d of %d iterations\n', n, length(power_dbm_ook))
 %     t = tic;
@@ -52,43 +53,48 @@ parfor n=1:length(power_dbm_ook)
     % Generate Signal
     param_tmp = generate_signals(param_tmp);
     
-    % plot sepctrum
+    %%%%%%%%%%%%%%%%%%%%%%%%%%
+%     % plot sepctrum
 %     figure; hold on; box on; grid on;
 %     plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_in).^2*1e12))
 %     fprintf('sample per symbol %d, symbol number %d\n', ...
 %         param_tmp.sample_per_symbol, param_tmp.symbol_number)
-    
-    % time domain
-%     figure; hold on; box on; grid on;
-%     plot(param_tmp.t_plot, (param_tmp.data_mod_t_in).^2)
-    
-    % eye diagram
+%     
+%     % eye diagram
 %     figure; hold on; box on; grid on;
 %     plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
-%         (param_tmp.data_mod_t_in).^2, '.')
+%         abs(param_tmp.data_mod_t_in).^2, '.')
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Propagation through a link
     param_tmp = simulate_link2(param_tmp, 4);
-%     time_elapsed(n) = toc(t);
-%     fprintf('Running time %.f minutes, total time %.f minutes\n', ...
-%         time_elapsed(n)/60, sum(time_elapsed)/60)
-%     fprintf('-------------------------------------------\n')
     param_mp{n} = param_tmp;
     
-    % plot
-%     plot(param.f_plot, abs(param.data_mod_f_in).^2)
-%     set(gca, 'yscale', 'log')
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     % plot output spectrum
+%     figure; hold on; box on; grid on;
+%     plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_current).^2*1e12))
+%     fprintf('sample per symbol %d, symbol number %d\n', ...
+%         param_tmp.sample_per_symbol, param_tmp.symbol_number)
 %     
-%     scatterplot(param.signal_rx_complex{1})
-%     evm(n) = param.evm_channel;
+%     % received constellation
+%     scatterplot(param_tmp.signal_rx_complex{1})
+%     
+%     % plot output eye diagram
+%     figure; hold on; box on; grid on;
+%     plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
+%         abs(param_tmp.data_mod_t_dc).^2, '.')
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
 %%
 evm = zeros(size(power_dbm_ook));
 snr = zeros(size(power_dbm_ook));
+q = zeros(size(power_dbm_ook));
 for n=1:length(power_dbm_ook)
     evm(n) = param_mp{n}.evm_channel;
     snr(n) = param_mp{n}.snr_channel;
+    q(n) = param_mp{n}.q_channel;
 end
 
 figure;
@@ -97,10 +103,21 @@ grid on;
 box on;
 plot(power_dbm_ook, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
 plot(power_dbm_ook, 5*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
+
 xlabel('Power (dBm)')
 ylabel('EVM (dB)')
 legend()
 
+figure;
+hold on;
+box on;
+grid on;
+plot(q, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM vs Q')
+plot(q, snr, 'o', 'linewidth', 2, 'displayname', 'SNR vs Q')
+xlabel('Q')
+ylabel('EVM (dB)')
+l = legend();
+l.Location = 'northwest';
 %% 
 figure;
 box on;

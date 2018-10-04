@@ -5,6 +5,8 @@ function param = calculate_ser_evm(param)
 param.ser_channel = zeros(1, param.channel_number);
 % EVM
 param.evm_channel = zeros(1, param.channel_number);
+% Q value
+param.q_channel = zeros(1, param.channel_number);
 
 for cidx = 1:param.channel_number
     % rotate constellation back
@@ -30,4 +32,11 @@ for cidx = 1:param.channel_number
     a = abs(rx2-tx).^2;
     b = abs(tx).^2;
     param.evm_channel(cidx) = sqrt(mean(a)/mean(b));
+    
+    % calculate Q value for OOK channels
+    if strcmp(param.channel_type{cidx}, 'ook')
+        s1 = sqrt(mean(a(tx==1)));
+        s0 = sqrt(mean(a(tx==0)));
+        param.q_channel(cidx) = 1/(s1+s0);
+    end
 end

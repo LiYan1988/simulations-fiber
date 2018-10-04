@@ -38,24 +38,32 @@ for cidx=1:param.channel_number
     %         end-param.delay_filter_channel(cidx)));
     
     sym_rm = param.delay_filter_channel(cidx)/param.sample_per_symbol(cidx);
+    param.data_mod_t_dc = xt_dc;
     signal = zeros(size(xt_dc, 1), 2);
     signal(:, 1) = real(xt_dc);
     signal(:, 2) = imag(xt_dc);
     
     sumd = zeros(param.sample_per_symbol(cidx), 1);
+    q = zeros(param.sample_per_symbol(cidx), 1);
     for nn=1:param.sample_per_symbol(cidx)
         signal_tmp = downsample(signal, param.sample_per_symbol(cidx), nn-1);
         opts = statset('UseParallel', true);
         % remove the first and last several samples 
-        [~, ~, sumd_tmp] = ...
+        [idx_tmp, c_tmp, sumd_tmp] = ...
             kmeans(signal_tmp((sym_rm+1):(param.symbol_number(cidx)-sym_rm), :), ...
             param.constellation_size(cidx), ...
             'Display', 'off', 'maxiter', 1000, ...
             'Replicates', 64, 'Options', opts);
-        sumd(nn) = mean(sumd_tmp);
+        sumd(nn) = sum(sumd_tmp);
+        c_tmp = c_tmp(:, 1) + 1i*c_tmp(:, 2);
+        c_tmp = abs(c_tmp-c_tmp.');
+        c_tmp(c_tmp==0) = inf;
+        c_tmp = min(c_tmp(:));
+        q(nn) = c_tmp/sumd(nn);
     end
     
-    [~, kmean_idx] = min(sumd);
+%     [~, kmean_idx] = min(sumd);
+    [~, kmean_idx] = max(q);
     
     % Sample the signal
     signal = downsample(signal, param.sample_per_symbol(cidx), kmean_idx-1);

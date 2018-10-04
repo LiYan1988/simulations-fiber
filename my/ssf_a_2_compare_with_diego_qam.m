@@ -44,7 +44,7 @@ grid_hz = 25*1e9;
 time_elapsed = zeros(size(power_dbm_qam));
 param_mp = cell(size(power_dbm_qam));
 
-for n=1:length(power_dbm_qam)
+parfor n=1:length(power_dbm_qam)
     fprintf('%d of %d iterations\n', n, length(power_dbm_qam))
 %     t = tic;
     param_tmp = configure_channels_default_6(param, ...
