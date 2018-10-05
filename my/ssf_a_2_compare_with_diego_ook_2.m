@@ -13,7 +13,7 @@ param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
 % S = 0.06*1e6; % [s/(m^2*km)], third order dispersion
 param.wavelength = 1550*1e-9; % [m], reference wavelength
-param.light_speed = 2.99792458*1e8; % [m/s], speed of light in fiber
+param.light_speed = 2.99792458*1e8; % [m/s], speed of light in vaccum
 S = 4*pi*param.light_speed/param.wavelength^3*param.beta2;
 param.beta3 = (S-4*pi*param.light_speed/param.wavelength^3*param.beta2)*...
     (param.wavelength^2/(2*pi*param.light_speed))^2; % [s^3/km], third order dispersion
@@ -90,22 +90,25 @@ end
 %%
 evm = zeros(size(power_dbm_ook));
 snr = zeros(size(power_dbm_ook));
-q = zeros(size(power_dbm_ook));
+q1 = zeros(size(power_dbm_ook));
+q2 = zeros(size(power_dbm_ook));
 for n=1:length(power_dbm_ook)
     evm(n) = param_mp{n}.evm_channel;
     snr(n) = param_mp{n}.snr_channel;
-    q(n) = param_mp{n}.q_channel;
+    q1(n) = param_mp{n}.q_channel_1;
+    q2(n) = param_mp{n}.q_channel_2;
 end
 
 figure;
 hold on;
 grid on;
 box on;
-plot(power_dbm_ook, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
-plot(power_dbm_ook, 5*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
-plot(power_dbm_ook, q, 'o', 'linewidth', 2, 'displayname', 'Q')
-xlabel('Power (dBm)')
-ylabel('EVM (dB)')
+% plot(power_dbm_ook, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
+% plot(power_dbm_ook, 5*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
+plot(power_dbm_ook, q1, 'o', 'linewidth', 2, 'displayname', 'Q1')
+plot(power_dbm_ook, q2, 'o', 'linewidth', 2, 'displayname', 'Q2')
+% xlabel('Power (dBm)')
+% ylabel('EVM (dB)')
 legend()
 
 % figure;

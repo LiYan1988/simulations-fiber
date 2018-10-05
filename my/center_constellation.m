@@ -27,15 +27,8 @@ for cidx=1:param.channel_number
     [xt_dc, ~, ~] = dispersion_compensation(param.data_mod_t_current, cidx,...
         param.beta2, param.beta3, dispersion_resudual_length, param);
     
-    %     % Remove head and tail of the signal
-    %     signal = zeros(size(xt_dc(param.delay_filter_channel(cidx)+1:...
-    %         end-param.delay_filter_channel(cidx)), 1), 2);
-    %
-    %     % Convert signal from complex to Nx2 vector
-    %     signal(:, 1) = real(xt_dc(param.delay_filter_channel(cidx)+1:...
-    %         end-param.delay_filter_channel(cidx)));
-    %     signal(:, 2) = imag(xt_dc(param.delay_filter_channel(cidx)+1:...
-    %         end-param.delay_filter_channel(cidx)));
+    % show eye diagram
+%     plot(rem(param.t, param.sample_per_symbol*param.dt), abs(xt_dc).^2, '.')
     
     sym_rm = param.delay_filter_channel(cidx)/param.sample_per_symbol(cidx);
     param.data_mod_t_dc = xt_dc;
@@ -48,7 +41,7 @@ for cidx=1:param.channel_number
     for nn=1:param.sample_per_symbol(cidx)
         signal_tmp = downsample(signal, param.sample_per_symbol(cidx), nn-1);
         opts = statset('UseParallel', true);
-        % remove the first and last several samples 
+        % remove the first and last several samples
         [idx_tmp, c_tmp, sumd_tmp] = ...
             kmeans(signal_tmp((sym_rm+1):(param.symbol_number(cidx)-sym_rm), :), ...
             param.constellation_size(cidx), ...
@@ -62,7 +55,7 @@ for cidx=1:param.channel_number
         q(nn) = c_tmp/sumd(nn);
     end
     
-%     [~, kmean_idx] = min(sumd);
+    %     [~, kmean_idx] = min(sumd);
     [~, kmean_idx] = max(q);
     
     % Sample the signal
