@@ -44,7 +44,7 @@ param.shift_channel_time = zeros(1, param.channel_number);
 
 for c = 1:param.channel_number
     if strcmp(param.channel_type{c}, 'ook')
-        [data_mod_t_tmp, param] = generate_ook(param, c);
+        [data_mod_t_tmp, param] = generate_ook_2(param, c);
     elseif strcmp(param.channel_type{c}, '16qam')
         [data_mod_t_tmp, param] = generate_16qam(param, c);
     end
