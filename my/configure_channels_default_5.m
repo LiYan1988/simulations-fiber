@@ -25,7 +25,7 @@ power_dbm = power_dbm_ook*ones(N, 1); % power of OOK
 power_dbm((N-1)/2+1) = power_dbm_qam;
 
 % filter parameter
-filter_parameter = 0.7*ones(1, N);
+filter_parameter = 0.5*ones(1, N);
 % For 16QAM use square-root RRC, then specify the roll-off factor
 filter_parameter((N-1)/2+1) = 0.2;
 

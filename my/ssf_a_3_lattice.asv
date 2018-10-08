@@ -46,13 +46,13 @@ time_elapsed = zeros(1, length(power_dbm_qam));
 
 n = 1;
 for k=1:length(power_dbm_qam)
+    power_dbm_qam_temp = power_dbm_qam(k);
+    t = tic;
+    fprintf('Interation %d of %d start.\n', n, length(power_dbm_qam))
     for m=1:length(bw_hz_qam)
-        fprintf('Iteration %d of %d started.\n', n, length(power_dbm_qam)*length(bw_hz_qam))
-        fprintf('16QAM power %.1f dBm, baud rate %.1f G.\n', power_dbm_qam(k), bw_hz_qam(m)/1e9)
-        t = tic;
         bw_hz_qam_temp = bw_hz_qam(m);
         param_temp = configure_channels_default_7_lattice(param, ...
-            power_dbm_qam(k), ...
+            power_dbm_qam_temp, ...
             power_dbm_ook, ...
             bw_hz_qam_temp, ...
             bw_hz_ook, ...
@@ -61,24 +61,24 @@ for k=1:length(power_dbm_qam)
         % Generate Signal
         param_temp = generate_signals(param_temp);
         
-        %         plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2*1e12))
-        %         set(gca, 'yscale', 'log')
+        plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2*1e12))
+%         set(gca, 'yscale', 'log')
         
         % Propagation through a link
         param_temp = simulate_link2(param_temp, 4);
-        param_mp{k, m} = param_temp;
         
-        time_elapsed(k, m) = toc(t);
-        fprintf('Iteration finished.\n')
-        fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
-            time_elapsed(k, m)/60, sum(time_elapsed(:))/60)
-        fprintf('------------------------------------------\n')
-        fprintf('\n')
-        n = n+1;
+        param_mp{k, m} = param_temp;
     end
+    time_elapsed(k) = toc(t);
+    fprintf('Iteration finished.\n')
+    fprintf('This iteration takes %.2f minutes, total running time %.2f minutes.\n', ...
+        time_elapsed(k)/60, sum(time_elapsed(:))/60)
+    fprintf('------------------------------------------\n')
+    fprintf('\n')
+    n = n+1;
 end
 
-save(sprintf('ssf_a_3_lattice_3qam4ook.mat'), '-v7.3')
+save(sprintf('ssf_a_3_lattice.mat'), '-v7.3')
 
 %% Process
 snr_results = zeros(510, 4);
@@ -93,7 +93,7 @@ for k=1:length(power_dbm_qam)
     end
 end
 
-save('ssf_a_3_lattice_3qam4ook.mat', 'snr_results', '-v7.3')
+save('ssf_a_3_lattice_snr.mat', 'snr_results', '-v7.3')
 
 %% Analyze results
 
@@ -113,17 +113,17 @@ for k=1:17 % column, power
 end
 
 %% Plot contour
-% snr_qam2 = snr_qam;
-% ook_th = 20;
-% snr_qam2(snr_ook<ook_th) = 0;
-%
-% figure; hold on;
-% grid on;
-% box on;
-% contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [40, 50, 100, 200], ...
-%     'showtext', 'on', 'linewidth', 2)
-% % contour(bw_qam_ghz, power_qam_dbm, snr_ook)
-% xlabel('Baud rate (GHz)')
-% ylabel('Power (dBm)')
-% % colorbar
-% title(sprintf('QAM SNR with OOK SNR > %d', ook_th))
+snr_qam2 = snr_qam;
+ook_th = 20;
+snr_qam2(snr_ook<ook_th) = 0;
+
+figure; hold on;
+grid on;
+box on;
+contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [40, 50, 100, 200], ...
+    'showtext', 'on', 'linewidth', 2)
+% contour(bw_qam_ghz, power_qam_dbm, snr_ook)
+xlabel('Baud rate (GHz)')
+ylabel('Power (dBm)')
+% colorbar
+title(sprintf('QAM SNR with OOK SNR > %d', ook_th))

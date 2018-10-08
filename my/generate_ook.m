@@ -8,8 +8,10 @@ data_bit_tmp = [0; data_bit; 0];
 % mask = repmat(data_bit_tmp, 1, param.sample_per_symbol(c));
 % data_mod_t_tmp = (data_mod_t_tmp.*mask)';
 % data_mod_t_tmp = data_mod_t_tmp(:);
+
+% NRZ OOK without carrier suppress
 data_mod_t_tmp = repmat(data_bit_tmp, 1, param.sample_per_symbol(c))';
-data_mod_t_tmp(2:end, :) = 0;
+% data_mod_t_tmp(2:end, :) = 0;
 data_mod_t_tmp = data_mod_t_tmp(:);
 
 % if it is OOK, use Gauss filter 

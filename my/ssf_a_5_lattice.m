@@ -6,8 +6,8 @@ close all;
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*1e9*(320); % [Hz], should be common multiples of all channels' bandwidths
-param.fn = 2^17; % number of spectrum points
+param.fmax = 2*pi*1e9*(480); % [Hz], should be common multiples of all channels' bandwidths
+param.fn = 2^18; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
@@ -56,12 +56,12 @@ for k=1:length(power_dbm_qam)
             power_dbm_ook, ...
             bw_hz_qam_temp, ...
             bw_hz_ook, ...
-            grid_hz, 7);
+            grid_hz, 11);
         
         % Generate Signal
         param_temp = generate_signals(param_temp);
         
-        %         plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2*1e12))
+        plot(param_temp.f_plot, 10*log10(abs(param_temp.data_mod_f_in).^2*1e12))
         %         set(gca, 'yscale', 'log')
         
         % Propagation through a link
@@ -78,7 +78,7 @@ for k=1:length(power_dbm_qam)
     end
 end
 
-save(sprintf('ssf_a_3_lattice_3qam4ook.mat'), '-v7.3')
+save(sprintf('ssf_a_5_lattice_5qam6ook.mat'), '-v7.3')
 
 %% Process
 snr_results = zeros(510, 4);
@@ -93,7 +93,7 @@ for k=1:length(power_dbm_qam)
     end
 end
 
-save('ssf_a_3_lattice_3qam4ook.mat', 'snr_results', '-v7.3')
+save('ssf_a_5_lattice_5qam6ook.mat', 'snr_results', '-v7.3')
 
 %% Analyze results
 
@@ -116,7 +116,7 @@ end
 % snr_qam2 = snr_qam;
 % ook_th = 20;
 % snr_qam2(snr_ook<ook_th) = 0;
-%
+% 
 % figure; hold on;
 % grid on;
 % box on;

@@ -41,7 +41,7 @@ time_elapsed = zeros(size(power_dbm_ook));
 param_mp = cell(size(power_dbm_ook));
 
 
-parfor n=1:length(power_dbm_ook)
+for n=1:length(power_dbm_ook)
     fprintf('%d of %d iterations\n', n, length(power_dbm_ook))
 %     t = tic;
     param_tmp = configure_channels_default_8(param, ...
@@ -54,16 +54,16 @@ parfor n=1:length(power_dbm_ook)
     param_tmp = generate_signals(param_tmp);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % plot sepctrum
-%     figure; hold on; box on; grid on;
-%     plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_in).^2*1e12))
-%     fprintf('sample per symbol %d, symbol number %d\n', ...
-%         param_tmp.sample_per_symbol, param_tmp.symbol_number)
-%     
-%     % eye diagram
-%     figure; hold on; box on; grid on;
-%     plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
-%         abs(param_tmp.data_mod_t_in).^2, '.')
+    % plot sepctrum
+    figure; hold on; box on; grid on;
+    plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_in).^2*1e12))
+    fprintf('sample per symbol %d, symbol number %d\n', ...
+        param_tmp.sample_per_symbol, param_tmp.symbol_number)
+    
+    % eye diagram
+    figure; hold on; box on; grid on;
+    plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
+        abs(param_tmp.data_mod_t_in).^2, '.')
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Propagation through a link
@@ -71,19 +71,19 @@ parfor n=1:length(power_dbm_ook)
     param_mp{n} = param_tmp;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % plot output spectrum
-%     figure; hold on; box on; grid on;
-%     plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_current).^2*1e12))
-%     fprintf('sample per symbol %d, symbol number %d\n', ...
-%         param_tmp.sample_per_symbol, param_tmp.symbol_number)
-%     
-%     % received constellation
-%     scatterplot(param_tmp.signal_rx_complex{1})
-%     
-%     % plot output eye diagram
-%     figure; hold on; box on; grid on;
-%     plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
-%         abs(param_tmp.data_mod_t_dc).^2, '.')
+    % plot output spectrum
+    figure; hold on; box on; grid on;
+    plot(param_tmp.f_plot, 10*log10(abs(param_tmp.data_mod_f_current).^2*1e12))
+    fprintf('sample per symbol %d, symbol number %d\n', ...
+        param_tmp.sample_per_symbol, param_tmp.symbol_number)
+    
+    % received constellation
+    scatterplot(param_tmp.signal_rx_complex{1})
+    
+    % plot output eye diagram
+    figure; hold on; box on; grid on;
+    plot(rem(param_tmp.t, param_tmp.sample_per_symbol*param_tmp.dt), ...
+        abs(param_tmp.data_mod_t_dc).^2, '.')
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
@@ -103,12 +103,18 @@ figure;
 hold on;
 grid on;
 box on;
-% plot(power_dbm_ook, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
-% plot(power_dbm_ook, 5*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
+plot(power_dbm_ook, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
+plot(power_dbm_ook, 5*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
+xlabel('Power (dBm)')
+ylabel('EVM (dB)')
+legend()
+
+figure;
+hold on;
+grid on;
+box on;
 plot(power_dbm_ook, q1, 'o', 'linewidth', 2, 'displayname', 'Q1')
 plot(power_dbm_ook, q2, 'o', 'linewidth', 2, 'displayname', 'Q2')
-% xlabel('Power (dBm)')
-% ylabel('EVM (dB)')
 legend()
 
 % figure;
