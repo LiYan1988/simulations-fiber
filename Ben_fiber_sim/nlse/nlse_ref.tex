@@ -1,0 +1,101 @@
+\documentclass[a4paper, 11pt]{article}
+%\documentclass[a4paper, 11pt, draft]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{a4wide}
+\usepackage{graphicx}
+\usepackage[hang,bf]{caption}
+\usepackage{amsmath}
+\usepackage{srcltx}
+\usepackage{verbatim}
+
+\newcommand{\odn}[3]{\frac{d^{#3}#1}{d#2^{#3}}}
+\newcommand{\od}[2]{\frac{d#1}{d#2}}
+\newcommand{\pdn}[3]{\frac{\partial^{#3}#1}{\partial#2^{#3}}}
+\newcommand{\pd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\sech}{\operatorname{sech}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\Ai}{\operatorname{Ai}}
+\newcommand{\Bi}{\operatorname{Bi}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Finv}{\mathcal{F}^{-1}}
+\newcommand{\idxtxt}[1]{{\textrm{\scriptsize{#1}}}}
+\newcommand{\fourier}{\mathcal{F}}
+\newcommand{\invfourier}{\mathcal{F}^{-1}}
+\setlength\arraycolsep{1.3pt}
+
+\title{Documentation for the NLSE solvers}
+\author{Pontus Johannisson}
+
+\begin{document}
+\maketitle
+
+\section{NLSE, SPM, 1D}
+In the case with a single polarization, the NLSE is
+\begin{equation}
+i \pd{u}{z} = \frac{\beta_2}{2} \pdn{u}{t}{2} - i \frac{\alpha}{2} u -
+\gamma |u|^2 u .
+\end{equation}
+The notation is taken from Agrawal's ``Nonlinear fiber optics''. By
+discarding the nonlinear term and Fourier transforming we obtain
+\begin{equation}
+i \od{U}{z} = -\frac{\beta_2 \omega^2}{2} U - i \frac{\alpha}{2} U,
+\end{equation}
+or
+\begin{equation}
+\od{U}{z} = \frac{i \beta_2 \omega^2}{2} U - \frac{\alpha}{2} U =
+\frac{1}{2} ( i \beta_2 \omega^2 - \alpha ) U,
+\end{equation}
+with the solution
+\begin{equation}
+U = U_0 \exp \left[ \frac{1}{2} ( i \beta_2 \omega^2 - \alpha ) z
+\right].
+\end{equation}
+Thus, the dispersive step of length $dz$ is made according to
+\begin{equation}
+u(z + dz) = \invfourier \left[ \fourier[u(z)] \exp \left( \frac{1}{2}
+  ( i \beta_2 \omega^2 - \alpha ) dz \right) \right].
+\end{equation}
+By including only the nonlinear term we have
+\begin{equation}
+i \od{u}{z} = - \gamma |u|^2 u,
+\end{equation}
+with the solution
+\begin{equation}
+u = u_0 \exp (i \gamma |u_0|^2 z).
+\end{equation}
+Thus
+\begin{equation}
+u(z + dz) = u(z) \exp (i \gamma |u(z)^2| \, dz).
+\end{equation}
+This procedure is implemented in {\texttt{nls\_spm.m}}.
+
+\verbatiminput{nls_solv.m}
+
+\subsection{Test case---the fundamental soliton}
+If attenuation is neglected, the fundamental soliton solution is
+\begin{equation}
+u = \sqrt{-\frac{\beta_2}{\gamma t_0^2}} \sech \left( \frac{t}{t_0}
+\right) \exp \left( -i \frac{\beta_2}{2 t_0^2} z \right),
+\end{equation}
+or
+\begin{equation}
+u = A_0 \sech \left( A_0 \sqrt{-\frac{\gamma}{\beta_2}} \, t \right)
+\exp \left( i \frac{\gamma A_0^2}{2} z \right).
+\end{equation}
+(In the first case we have chosen the pulse width. In the second case
+we have chosen the amplitude.) This is implemented in
+{\texttt{fundamental\_soliton.m}}.
+
+\section{The Manakov model}
+The Manakov equation is
+\begin{equation}
+i \pd{u}{z} = \frac{\beta_2}{2} \pdn{u}{t}{2} - i \frac{\alpha}{2} u -
+\gamma (u^\dag u) u,
+\end{equation}
+where the vector $u = [u_x, u_y]^T$. This equation ``accurately
+describes nonlinear and dispersive light propagation in standard
+communication fiber with rapidly and randomly varying birefringence
+when polarization mode dispersion can be neglected'' [Wang, Menyuk,
+1999].  The linear and nonlinear steps consist of two separate
+operations of the type described above.
+\end{document}

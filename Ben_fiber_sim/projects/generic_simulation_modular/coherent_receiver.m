@@ -1,0 +1,310 @@
+function [p] = coherent_receiver(p, u)
+% Implementation of a coherent receiver to recover a signal
+%
+% 'Electronic' CD compensation
+% Re-samples to [p.rx.os] times oversampling 
+% Dynamic Equalizer
+% EVM calculation
+% BER calculation
+% GMI calculation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Input monitoring stage
+write_log(p, now, 'Started coherent receiver');
+
+% Resetting RNG seed so that the same thermal noise is generated for all
+% distances (makes a fairer comparison) - should disable this if a
+% statistical test is preferred (i.e. different noise each time the script is called)
+rng(mod(p.rng.seed - 1, 2^32-1));
+
+%% Emulating electronic dispersion compensation with dispersive fiber (optional), this needs to be done before filtering
+if (isfield(p.rx, 'edc_L')) && (p.rx.edc_L ~= 0) && isfield(p.flag, 'b2b') && ~p.flag.b2b
+    % Run EDC if a) the parameter edc_L has been specified as non-zero (can be negative), and b) this is not a back-to-back simulation.
+    write_log(p, now, sprintf('RX: Applying EDC for %.2f km', p.rx.edc_L/1e3));
+    if p.flag.edc_es==1
+        u = dispersive_propagation(u,p.omega,-p.smf.D*p.smf.L);
+    else
+        u = dispersive_propagation(u,p.omega,-p.smf.D*p.rx.edc_L);
+    end
+    %Mean group delay compensation.
+    %u = circshift(u, round(-p.link.N_span*p.smf.L*p.smf.D*p.w_index.sig(p.rx.chan)/(2*pi)*p.const.lambda^2/p.const.c/p.dt_samp));
+end
+%% Filtering 
+  
+if p.rx.chan > p.link.N_chan
+    p.rx.chan = p.link.N_chan;
+end
+if p.link.modulations(p.rx.chan)== 4
+    %Filtering the signal with the RX RRC and returning the received symbols undersampled.
+    span = 10;        % Filter span in symbols
+    rolloff = 0.2;   % Roloff factor of filter
+    rxfilter = comm.RaisedCosineReceiveFilter('RolloffFactor',rolloff,'FilterSpanInSymbols',span,'InputSamplesPerSymbol',p.samp_per_symb, 'DecimationFactor',p.samp_per_symb);
+    u_rx = u.*exp(-1j*p.w_index.sig(p.rx.chan)*p.t);
+    u_rx=rxfilter(u_rx');
+    u_rx=u_rx';
+else        
+    demux = struct('delta_f', p.rx.filter_bandwidth_hz(p.rx.chan), 'f0', 0, 'f', p.f);
+    u_rx = filter_gaussian(demux, u.*exp(-1j*p.w_index.sig(p.rx.chan)*p.t));
+    % Monitoring received optical spectrum
+    rx_power = measure_power(u_rx);
+    measure_power(u_rx, 'received signal power ');
+    write_log(p, now, sprintf('RX: Received signal power %.2f dBm', rx_power));
+end
+
+
+% Adding laser phase noise
+% if isfield(p.rx, 'linewidth')
+%     u_rx = add_phase_drift(u_rx, 2*pi*p.rx.linewidth*p.dt_symb);
+% end
+
+% %% Add thermal noise in receiver
+% if isfield(p.rx, 'thermal_noise') && isfield(p.rx, 'responsivity')
+%     noise = p.rx.thermal_noise*sqrt(p.f_samp/2)*(randn(1, length(u_rx)) + 1i*randn(1, length(u_rx)));
+%     demux = struct('delta_f', p.rx.filter_bandwidth_hz(p.rx.chan), 'f0', 0, 'f', p.f);
+%     noise = filter_ideal_bp(demux, noise); % Only adds noise in the receiver's electrical bandwidth. TODO: Consider using a different type of filter to emulate the photodiode?
+%     u_rx = p.rx.responsivity*u_rx + noise; 
+% 
+%     % Monitoring received spectrum after thermal noise loading
+%     measure_power(filter_ideal_bp(demux, noise), 'thermal noise ');
+%     measure_power(filter_ideal_bp(demux, u_rx), 'total received power ');
+% end
+
+
+%% Downsampling with ADCs and dynamic equalizer
+%DD-LMS equalizer (from Attila's Experimental code)
+if p.link.modulations(p.rx.chan)== 1
+    p.rx.equalizer.Iterations_DDLMS = 0; % Number of DD-LMS iterations
+    p.rx.equalizer.StepSize_DDLMS   = 1e-6; % Step size for DD-LMS equalizer % NOTE: Step size can either be the same for every DDLMS iteration (single number) or different (vector with a value for the step size for each iteration)
+    p.Constellation = [0 1];
+elseif p.link.modulations(p.rx.chan)== 3
+    p.rx.equalizer.Iterations_DDLMS = 0; % Number of DD-LMS iterations
+    p.rx.equalizer.StepSize_DDLMS   = 1e-6; % Step size for DD-LMS equalizer % NOTE: Step size can either be the same for every DDLMS iteration (single number) or different (vector with a value for the step size for each iteration)
+    p.Constellation = [-1-1j 1-1j 1+1j -1+1j];
+elseif p.link.modulations(p.rx.chan)== 4
+    p.rx.equalizer.Iterations_DDLMS = 5; % Number of DD-LMS iterations
+    p.rx.equalizer.StepSize_DDLMS   = [1e-3, 1e-3, 1e-4, 1e-5, 1e-6]; % Step size for DD-LMS equalizer % NOTE: Step size can either be the same for every DDLMS iteration (single number) or different (vector with a value for the step size for each iteration)
+    p.Constellation=[-3-3i,-3-1i,-3+1i,-3+3i,-1-3i,-1-1i,-1+1i,-1+3i,1-3i,1-1i,1+1i,1+3i,3-3i,3-1i,3+1i,3+3i];
+end
+    
+if isfield(p, 'rx') && isfield(p.rx, 'equalizer') && p.link.modulations(p.rx.chan)~= 1 % Try and run a dynamic equalizer
+    try
+        % Sampling noisy electrical signal (ADCs)
+        %p.rx.u = resample(double(u_rx), p.rx.os, p.samp_per_symbol(p.rx.chan).wdm); % Sampling to desired rate for DSP NOTE: Apparently, resample only works on doubles
+        p.rx.u=double(u_rx);
+        p.rx.u = p.rx.u/sqrt(mean(abs(p.rx.u).^2));
+        
+        if isfield(p.rx, 'dc_bias') && isfield(p.rx.equalizer,'Iterations_DDLMS') && (p.rx.equalizer.Iterations_DDLMS > 0)
+            p.rx.u = p.rx.u + p.rx.dc_bias; % Adding a small carrier for Frequency offset estimation
+        end
+                
+        write_log(p, now, 'RX: DDLMS Equalizer');
+        write_log(p, now, sprintf('RX: Samples per symbol %d', p.rx.os));
+        write_log(p, now, sprintf('RX: Equalizer taps %d', p.rx.equalizer.NTap));
+        write_log(p, now, sprintf('RX: CMA iterations %d \t RD-CMA iterations %d \t DD-LMS iterations %d', p.rx.equalizer.Iterations_CMA, p.rx.equalizer.Iterations_RDCMA, p.rx.equalizer.Iterations_DDLMS));
+        write_log(p, now, sprintf('RX: BPS test angles %d', p.rx.equalizer.TestAngles_DDLMS));
+        p.rx.equalizer.SymbolRate=p.rx.equalizer.SymbolRate(p.rx.chan);
+        [p.rx.u, ~, p.rx.taps, ~, ~, ~, p.rx.f_offset, ~, p.rx.phase] = DDLMS_eq(p.rx.equalizer, single(p.rx.u.')); % DD-LMS algorithm expects input to be a single-precision column vector NOTE: DD-LMS algorithm removes some symbols from front and end of data stream. May need to re-synchronize outputs
+        p.rx.u = p.rx.u.';
+
+        write_log(p, now, sprintf('RX: Estimated Frequency Offset %.4f', p.rx.f_offset));
+    catch
+        warning('Incorrect inputs to DD-LMS equalizer code. Reverting to simple sampling case')
+        error_flag = 1;
+        
+        % If not running an equalizer, downsample to one sample per symbol
+        p.rx.u = u_rx(p.idx_symb); % 'Ideal' downsampling to one sample per symbol
+        p.rx.u = p.rx.u/sqrt(mean(abs(p.rx.u).^2));
+    end
+else
+    p.rx.u = u_rx((max(p.f_symb)/p.f_symb(p.rx.chan))*p.idx_symb(1:end/(max(p.f_symb)/p.f_symb(p.rx.chan)))); %Setting the correct sampling depending on the bits sent.
+    p.rx.u = p.rx.u/sqrt(mean(abs(p.rx.u).^2));
+end
+% Use external phase recovey (4th-power) code if 1) no equalizer is specified, 2) DD-LMS has 0 iterations or 3) the equalizer was not run because of an error
+ 
+% if   ~isfield(p.rx, 'equalizer') || (isfield(p.rx, 'equalizer') && isfield(p.rx.equalizer, 'Iterations_DDLMS') && ~p.rx.equalizer.Iterations_DDLMS) || (exist('error_flag', 'var') && error_flag)   
+%     if p.link.modulations(p.rx.chan)~= 1
+%         write_log(p, now, 'RX: Viterbi-Viterbi Phase Recovery');
+%         [p.rx.u, ~] = CPE_4thPower_SlidingWindow([p.rx.u(end-p.rx.vv_block_length/2+1:end), p.rx.u, p.rx.u(1:p.rx.vv_block_length/2)], 0, p.rx.vv_block_length); % Adding samples at front and end of received symbols (assuming periodicity) to negate symbol removal from CPE TODO: Kind of works, but may want a better solution eventually.
+%         p.rx.u = p.rx.u.';
+%     end
+% end
+
+%% Calculating Received Signal Quality (BER, EVM, GMI)
+write_log(p, now, 'RX: Calculating Signal Performance Metrics');
+% Testing pi phase rotations to minimize BER
+if p.link.modulations(p.rx.chan)== 1
+    p.bits_per_symbol=1;
+    test_u=abs(p.rx.u);
+    test_data=bit_demapper(p,test_u);
+        
+    tx_data=p.data(p.rx.chan).bits(1,:,1);
+    test_data = reshape(test_data, 1, p.bits_per_symbol*length(p.rx.u));
+
+    test_ber = ber_counter(test_data, tx_data);
+        
+    [p.rx.ber] = min(test_ber);
+   
+elseif p.link.modulations(p.rx.chan)== 3
+    test_ber = ones(1, 4);
+    p.bits_per_symbol=2;
+    for test_ind = 1:4
+        test_u = p.rx.u.*exp(1j*pi/2*test_ind);
+        test_data = bit_demapper(p, test_u);
+
+        test_data = reshape(test_data, 1, p.bits_per_symbol*length(p.rx.u));
+        tx_data = reshape(p.data(p.rx.chan).bits(:, :, 1), 1, p.bits_per_symbol*p.N_symb); % TODO: Make polarization compatible; Make WDM compatible
+
+        test_ber(test_ind) = ber_counter(test_data, tx_data);
+    end
+    [p.rx.ber, ber_ind] = min(test_ber);
+    p.rx.u = p.rx.u.*exp(1j*pi/2*ber_ind);
+elseif p.link.modulations(p.rx.chan)== 4 %Uses matlab commtoolbox to recover the data.
+    test_ber = ones(1, 4);
+    p.bits_per_symbol=4;
+    test_data=ones(4, p.bits_per_symbol*length(p.rx.u));
+    p.bits_per_symbol=4;
+    for test_ind = 1:4
+        test_u = p.rx.u.*exp(1j*pi/2*(test_ind-1));
+        dataSymbolsOut = qamdemod(test_u', 16,'UnitAveragePower', true);
+        dataSymbolsOut = dataSymbolsOut(1:end);
+        dataOutMatrix = de2bi(dataSymbolsOut,p.bits_per_symbol);
+        
+        test_data(test_ind,:) = reshape(dataOutMatrix', 1, p.bits_per_symbol*length(p.rx.u));
+        tx_data = reshape(p.data(p.rx.chan).bits(:, 1:end, 1), 1, p.bits_per_symbol*(p.N_symb)); % TODO: Make polarization compatible; Make WDM compatible
+                
+        test_ber(test_ind) = ber_counter(test_data(test_ind,:), tx_data);
+    end
+    [p.rx.ber, ber_ind] = min(test_ber);
+    p.rx.u = p.rx.u.*exp(1j*pi/2*(ber_ind-1));
+end
+% Storing binary data
+if p.link.modulations(p.rx.chan)== 4
+    p.rx.data=test_data(ber_ind,:);
+elseif p.link.modulations(p.rx.chan)== 1
+    p.rx.data = test_data;
+end
+
+% % Syncing constellations for EVM and GMI calculations
+if p.link.modulations(p.rx.chan)== 1
+    p.rx.u=abs(p.rx.u);
+    [val, lags] = crosscorr(real(p.rx.u), real(p.tx.ideal(p.rx.chan, :)), length(p.rx.u)-1);
+    [~, sync_ind] = max(abs(val));
+    sync = lags(sync_ind);
+    tx_sync = circshift(p.tx.ideal(p.rx.chan, :), -sync);
+    
+else
+    [val, lags] = crosscorr(real(p.rx.u), real(p.tx.ideal(p.rx.chan, :)), length(p.rx.u)-1);
+    [~, sync_ind] = max(abs(val));
+    sync = lags(sync_ind);
+    tx_sync = circshift(p.tx.ideal(p.rx.chan, :), -sync);
+end
+% Calculating EVM
+error = p.rx.u - tx_sync(1:length(p.rx.u));
+p.rx.evm_db = 10*log10(sqrt(mean(abs(error).^2))/sqrt(mean(abs( tx_sync(1:length(p.rx.u)) ).^2)));
+
+%For SNR, SNR=1/EVM^2 in linear
+
+% GMI calculation ONLY WORKS FOR QAM constellations
+if p.link.modulations(p.rx.chan)== 1
+    fprintf('RX: BER = %.2e \t EVM = %.2f dB \t \n', p.rx.ber, p.rx.evm_db);
+    p.rx.gmi=0;
+else
+    p.rx.gmi = calcGMI_withNormalization(tx_sync(1:length(p.rx.u)), p.rx.u);
+    fprintf('RX: BER = %.2e \t EVM = %.2f dB \t GMI = %.2e bit/Symb\n', p.rx.ber, p.rx.evm_db, p.rx.gmi);
+end
+
+
+%% Saving results
+result = struct('ber', p.rx.ber, 'evm_db', p.rx.evm_db, 'gmi', p.rx.gmi, 'u0', p.tx.ideal, 'u', p.rx.u);
+% save_file_name = [datestr(p.timestamp, 'yyyy-mm-dd_HH.MM.SS'), '_Simulation_result_channel_', num2str(p.rx.chan, '%d'), '_sweep_iteration', num2str(round(p.sweep.ind)), '.mat'];
+% save(['../results/', save_file_name], 'result');
+
+write_log(p, now, sprintf('RX: BER %.2e', result.ber));
+write_log(p, now, sprintf('RX: EVM %.2f dB', result.evm_db));
+write_log(p, now, sprintf('RX: GMI %.4f bits/symbol', result.gmi));
+
+if p.flag.rx_perf
+    if p.link.modulations(p.rx.chan)== 1
+        fig_handle = figure(1002); clf(fig_handle); fig_handle.CurrentAxes = axes; plot(fig_handle.CurrentAxes, real(p.rx.u), imag(p.rx.u), '.'); axis(fig_handle.CurrentAxes, [-0.5, 2, -0.5, 0.5]); grid(fig_handle.CurrentAxes, 'ON');
+        title(fig_handle.CurrentAxes, 'RX Constellation');
+        xlabel(fig_handle.CurrentAxes, ['BER = ', num2str(p.rx.ber, '%.2e'),'  EVM = ', num2str(p.rx.evm_db, '%.2f'), ' dB']);
+        fig_handle.Position = [1200 100 700 500] 
+    else
+        fig_handle = figure(1002); clf(fig_handle); fig_handle.CurrentAxes = axes; plot(fig_handle.CurrentAxes, real(p.rx.u), imag(p.rx.u), '.'); axis(fig_handle.CurrentAxes, [-1.5, 1.5, -1.5, 1.5]); grid(fig_handle.CurrentAxes, 'ON');
+        title(fig_handle.CurrentAxes, 'RX Constellation');
+        xlabel(fig_handle.CurrentAxes, ['BER = ', num2str(p.rx.ber, '%.2e'), '  EVM = ', num2str(p.rx.evm_db, '%.2f'), ' dB   GMI = ', num2str(p.rx.gmi, '%.2e'), ' bit/Symb']);
+        fig_handle.Position = [3260 200 700 500]
+    end
+end
+
+write_log(p, now, 'Coherent receiver complete');
+end
+
+function [output_bits] = bit_demapper(p, u)
+% Demaps the symbols to bits based on the iq_modulator function
+% This is super crude. I should fix it when I have time.
+    i_rx = real(u);
+    q_rx = imag(u);
+    if p.link.modulations(p.rx.chan)== 1
+        i_lvl= round(1/2*(i_rx-min(i_rx)));
+    else
+    i_lvl = round((p.bits_per_symbol-1)/2*(i_rx-min(i_rx)));
+    q_lvl = round((p.bits_per_symbol-1)/2*(q_rx-min(q_rx)));
+    end
+    i_bits = zeros(ceil(p.bits_per_symbol/2), length(u));
+    q_bits = zeros(floor(p.bits_per_symbol/2), length(u));
+    switch p.link.modulations(p.rx.chan)
+        case 4
+            for ind = 1:length(u)
+                if i_lvl(ind) == 3
+                    i_bits(:, ind) = [0; 0];
+                elseif i_lvl(ind) == 2
+                    i_bits(:, ind) = [1; 0];
+                elseif i_lvl(ind) == 1
+                    i_bits(:, ind) = [0; 1];
+                else % i_lvl == 0
+                    i_bits(:, ind) = [1; 1];
+                end
+                
+                if q_lvl(ind) == 3
+                    q_bits(:, ind) = [0; 0];
+                elseif q_lvl(ind) == 2
+                    q_bits(:, ind) = [1; 0];
+                elseif q_lvl(ind) == 1
+                    q_bits(:, ind) = [0; 1];
+                else % l_lvl == 0
+                    q_bits(:, ind) = [1; 1];
+                end
+                            
+            end
+        case 3
+            % Demapping bits (QPSK)
+            for ind = 1:length(u)
+                if i_rx(ind) > 0
+                   i_bits(ind) = 0;
+                else
+                    i_bits(ind) = 1;
+                end
+
+                if q_rx(ind) > 0
+                    q_bits(ind) = 0;
+                else
+                    q_bits(ind) = 1;
+                end
+            end
+        case 1
+            i_bits = i_lvl;
+        case 2
+            i_bits = i_lvl;
+        otherwise
+            warning('Not Found!')
+    end
+    output_bits = [i_bits;q_bits];
+end
+
+function plot_errors(rx_const, tx_const)
+    % Plots constellation points that are errors in red
+    % rx_const is the recovered constellation, tx_const is the transmitted
+    % constellation
+    
+end
