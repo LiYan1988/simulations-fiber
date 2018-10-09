@@ -13,7 +13,7 @@ function [xt_dc, xf_dc, xt] = dispersion_compensation(signal, cidx, ...
 
 % For OOK channel, just take the absolute value, whereas for QAM channel,
 % compensate residual dispersion
-if strcmp(param.channel_type{cidx}, 'ook')
+if false %strcmp(param.channel_type{cidx}, 'ook')
     xt_dc = abs(xt).^2;
     xf_dc = ft(xt_dc, param.df);
 else

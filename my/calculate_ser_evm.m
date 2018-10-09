@@ -8,6 +8,8 @@ param.evm_channel = zeros(1, param.channel_number);
 % Q value
 param.q_channel_1 = zeros(1, param.channel_number);
 param.q_channel_2 = zeros(1, param.channel_number);
+% Best matched constellation
+param.tx_best_match = cell(1, param.channel_number);
 
 for cidx = 1:param.channel_number
     % rotate constellation back
@@ -21,6 +23,7 @@ for cidx = 1:param.channel_number
     x_sol = lsqnonlin(objfcn,x0,[],[],opts);
     
     rx2 = x_sol(1) + x_sol(2)*rx;
+    param.tx_best_match{cidx} = rx2; 
     
     % Calculate SER
     tx_unique = unique(tx);
