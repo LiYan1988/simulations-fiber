@@ -81,9 +81,9 @@ p.file.save_span_incr = 5;
 p.samp_per_symb = 4;   % Samples per symbol
 p.N_symb        = 2^14;  % Number of bits
 
-p.f_symb        = [30e9]; % The symbol rate [Baud]
-p.link.modulations      = [4];%Set the modulation format for each channel. 1 OOK, 2 BPSK, 3 QAM, 4 16QAM
-p.power_array        = [6]; %Define the power difference between WDM channels.
+p.f_symb        = [10e9]; % The symbol rate [Baud]
+p.link.modulations      = [1];%Set the modulation format for each channel. 1 OOK, 2 BPSK, 3 QAM, 4 16QAM
+p.power_array        = [0]; %Define the power difference between WDM channels.
 
 % p.f_symb        = [10e9 10e9 10e9 10e9 10e9 30e9 10e9 10e9 10e9 10e9 10e9]; % The symbol rate [Baud] 
 % p.link.modulations      = [1 1 1 1 1 4 1 1 1 1 1]; %1 OOK, 2 BPSK, 3 QAM, 4 16QAM

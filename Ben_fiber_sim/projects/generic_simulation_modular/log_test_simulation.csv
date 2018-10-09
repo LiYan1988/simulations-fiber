@@ -27941,3 +27941,9 @@
 2018-09-24 15:31:42, Simulation ID, 2018-09-24_15.31.38, Processing 2018-09-24_15.31.38_Fiber_optical_waveform_span_5.mat
 2018-09-24 15:31:42, Simulation ID, 2018-09-24_15.31.38, Started coherent receiver
 2018-09-24 15:31:42, Simulation ID, 2018-09-24_15.31.38, RX: Applying EDC for 410.00 km
+2018-10-09 20:11:31, Simulation ID, 2018-10-09_20.11.31, sim_transmitter Started
+2018-10-09 20:11:38, Simulation ID, 2018-10-09_20.11.31, Generating Signal (generate_wdm_signal)
+2018-10-09 20:11:39, Simulation ID, 2018-10-09_20.11.31, Input CW power, 6.00 dBm
+2018-10-09 20:12:13, Simulation ID, 2018-10-09_20.12.13, sim_transmitter Started
+2018-10-09 20:12:21, Simulation ID, 2018-10-09_20.12.13, Generating Signal (generate_wdm_signal)
+2018-10-09 20:12:21, Simulation ID, 2018-10-09_20.12.13, Input CW power, 0.00 dBm
