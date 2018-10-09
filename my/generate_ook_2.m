@@ -31,7 +31,7 @@ s = (param.delay_filter_channel(c)+1):...
     (param.delay_filter_channel(c)+length(param.t));
 data_mod_t_tmp = data_mod_t_tmp(s);
 
-data_mod_t_tmp = 0.5*(cos(pi*data_mod_t_tmp));
+data_mod_t_tmp = 0.5*(cos(pi*data_mod_t_tmp)).';
 
 % suppress carrier
 % xf = ft(data_mod_t_tmp, param.df);
