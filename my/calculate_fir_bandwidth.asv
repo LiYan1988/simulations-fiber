@@ -1,6 +1,0 @@
-function calculate_fir_bandwidth(fir)
-% calculate FIR Full width at half maximum (FWHM) bandwidth
-[h, w] = freqz(fir);
-h = abs(h);
-h = h/max(h);
-[I

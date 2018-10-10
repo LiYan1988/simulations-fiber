@@ -27947,3 +27947,45 @@
 2018-10-09 20:12:13, Simulation ID, 2018-10-09_20.12.13, sim_transmitter Started
 2018-10-09 20:12:21, Simulation ID, 2018-10-09_20.12.13, Generating Signal (generate_wdm_signal)
 2018-10-09 20:12:21, Simulation ID, 2018-10-09_20.12.13, Input CW power, 0.00 dBm
+2018-10-10 18:02:53, Simulation ID, 2018-10-10_18.02.53, sim_transmitter Started
+2018-10-10 18:03:11, Simulation ID, 2018-10-10_18.02.53, Generating Signal (generate_wdm_signal)
+2018-10-10 18:03:11, Simulation ID, 2018-10-10_18.02.53, Input CW power, -20.00 dBm
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, sim_transmitter Started
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, Generating Signal (generate_wdm_signal)
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, Input CW power, -20.00 dBm
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, Generated channel 1 with 16384 symbols, Signal power after modulation, -20.00 dBm, Center frequency, 0.00 GHz (Relative to 193.41 THz)
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, Signal Generation Complete
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, sim_transmitter Complete
+
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, sim_link Started
+2018-10-10 18:05:08, Simulation ID, 2018-10-10_18.05.03, WDM power is -2.000000e+01 dBm
+2018-10-10 18:05:08, Simulation ID, 2018-10-10_18.05.03, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-10 18:05:08, Simulation ID, 2018-10-10_18.05.03, NLSE solver completed
+2018-10-10 18:05:08, Simulation ID, 2018-10-10_18.05.03, SMF: Propagated 82 km
+2018-10-10 18:05:08, Simulation ID, 2018-10-10_18.05.03, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, NLSE solver completed
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, SMF: Propagated 164 km
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, NLSE solver completed
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, SMF: Propagated 246 km
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, NLSE solver completed
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, SMF: Propagated 328 km
+2018-10-10 18:05:09, Simulation ID, 2018-10-10_18.05.03, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-10 18:05:10, Simulation ID, 2018-10-10_18.05.03, NLSE solver completed
+2018-10-10 18:05:10, Simulation ID, 2018-10-10_18.05.03, SMF: Propagated 410 km
+2018-10-10 18:05:10, Simulation ID, 2018-10-10_18.05.03, Transmission through 410 km SMF completed
+2018-10-10 18:05:10, Simulation ID, 2018-10-10_18.05.03, Dispersion Management Simulation Complete
+
+2018-10-10 18:05:03, Simulation ID, 2018-10-10_18.05.03, sim_postprocess Started
+2018-10-10 18:05:14, Simulation ID, 2018-10-10_18.05.03, Processing 2018-10-10_18.05.03_Fiber_optical_waveform_span_5.mat
+2018-10-10 18:05:14, Simulation ID, 2018-10-10_18.05.03, Started coherent receiver
+2018-10-10 18:05:14, Simulation ID, 2018-10-10_18.05.03, RX: Applying EDC for 410.00 km
+2018-10-10 18:05:14, Simulation ID, 2018-10-10_18.05.03, RX: Received signal power -19.78 dBm
+2018-10-10 18:05:14, Simulation ID, 2018-10-10_18.05.03, RX: Calculating Signal Performance Metrics
+2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, RX: BER 4.90e-01
+2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, RX: EVM 1.12 dB
+2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, RX: GMI 0.0000 bits/symbol
+2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, Coherent receiver complete
+2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, Post-processing Complete
+
