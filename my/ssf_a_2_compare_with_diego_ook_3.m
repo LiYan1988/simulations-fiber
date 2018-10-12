@@ -7,7 +7,7 @@ close all;
 %% Fiber Parameters
 % -------------- Primary parameters
 param.fmax = 2*pi*1e9*(640); % [Hz], should be common multiples of all channels' bandwidths
-param.fn = 2^17; % number of spectrum points
+param.fn = 2^18; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
