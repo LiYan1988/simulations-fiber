@@ -130,7 +130,8 @@ for k=1:p.link.N_chan
             %p.electric.data = p.data(2, :, 1, k);
             e_q = 0.5*ones(1,length(e_i));
             % Modulating data onto a new channel TODO: Make sure that all of the data is independent!!!
-            u_mod = iq_modulator(p, u_cw, [e_i; e_q]);            
+%             u_mod = iq_modulator(p, u_cw, [e_i; e_q]);            
+            u_mod = e_i;
     end
  
     %Seting the power to the desired output per channel.
