@@ -6,8 +6,8 @@ close all;
 
 %% Fiber Parameters
 % -------------- Primary parameters
-param.fmax = 2*pi*1e9*(640); % [Hz], should be common multiples of all channels' bandwidths
-param.fn = 2^18; % number of spectrum points
+param.fmax = 2*pi*1e9*(320); % [Hz], should be common multiples of all channels' bandwidths
+param.fn = 2^17; % number of spectrum points
 
 param.span_length = 82; % [km], span length
 param.beta2 = -2.1683e-23; % [s^2/km], GVD, D=17 [ps/ns/km]
@@ -28,10 +28,10 @@ param.nu = param.light_speed/param.wavelength; % [Hz], light speed is in fiber, 
 param.fbg_length_1 = 82; % [km], length of the first type DCF
 param.fbg_length_2 = 82; % [km], length of the second type DCF
 
-param.random_seed = 54790;
+param.random_seed = 1;
 
 %% Test
-power_dbm_ook = -20:2:20;
+power_dbm_ook = -20:2:10;
 bw_hz_ook = 10*1e9;
 bw_hz_qam = 30*1e9;
 grid_hz = 50*1e9;

@@ -24,7 +24,7 @@ channel_type = [repmat({'ook'}, (N-1)/2, 1); {'ook'}; ...
 power_dbm = power_dbm_ook*ones(N, 1); % power of OOK
 
 % filter parameter
-filter_parameter = 0.65*ones(1, N);
+filter_parameter = 0.7*ones(1, N);
 
 % symbol in filter
 symbol_in_filter = 10*ones(1, N);
