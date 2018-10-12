@@ -1,0 +1,65 @@
+function [power_sort ber_sort evm_sort] = print_plots(results)
+Aux_Matrix =zeros(1,length(results));
+for ind =1:length(results)
+    Aux_Matrix(ind)= results(ind).power;
+end
+power=Aux_Matrix;
+[power_sort,ind_sort]=sort(power);
+
+for ind =1:length(results)
+    Aux_Matrix(ind) = results(ind).ber;
+end
+ber=Aux_Matrix;
+ber_sort= ber(ind_sort);
+for ind =1:length(results)
+    Aux_Matrix(ind) = results(ind).evm_db;
+end
+evm=Aux_Matrix;
+evm_sort=evm(ind_sort);
+evm_lin_sort=10.^(evm_sort/10);
+snr_lin_sort=1./(evm_lin_sort.^2);
+snr_sort=10*log10(snr_lin_sort);
+
+for ind =1:length(results)
+    Aux_Matrix(ind) = results(ind).q;
+end
+q=Aux_Matrix;
+q_sort=q(ind_sort);
+% for ind =1:length(results) %Solve later.
+%     Aux_Matrix(ind) = results(ind).constellation;
+% end
+% constellation=Aux_Matrix;
+% constellation_sort = constellation(ind_sort,:);
+
+Pow_GM=[-10:10];
+SER_GM=[15.66,17.66,19.54,21.18,22.02,21.13,18.44,14.89
+
+% wdm_power=power_sort+10*log(11); %here you need to put the number of channels in the WDM link
+figure(1004); plot(power_sort,q_sort,'-o','LineWidth',2);title('q vs Input Power');xlabel('Input Power per Channel [dBm]'); ylabel('Q'); grid on; hold on;
+figure(1002); plot(power_sort,evm_sort,'-o',power_sort,snr_sort,'-*','LineWidth',2);title('EVM and SNR vs Input Power');xlabel('Input Power per Channel [dBm]'); ylabel('EVM & SNR[dB]'); grid on;legend('EVM','SNR'); hold on;
+figure(1003); semilogy(power_sort,ber_sort,'-o','LineWidth',2);title('BER vs Input Power');xlabel('Input Power per Channel [dBm]'); ylabel('BER]'); grid on; hold on;
+% for i= 1:length(wdm_power)
+%     figure(i); plot(constellation_sort(i,:),'o','LineWidth',2);title(['Constellation for ' num2str(power_sort(i)) 'dBm input power']);xlabel('in-phase'); ylabel('quadrature'); grid on;
+% end
+
+%Plot 2 lines
+%semilogy(power1,BER1,'-o',power11,BER11,'-o','LineWidth',2);title('BER vs Power per channel');xlabel('Input power per channel[dBm]'); ylabel('BER'); grid on;legend('Single 16QAM Channel','10 OOK + 16QAM');
+%plot(power1,EVM1,'-o',power11,EVM11,'-o','LineWidth',2);title('EVM vs Power per channel');xlabel('Input power per channel[dBm]'); ylabel('EVM'); grid on;legend('Single 16QAM Channel','10 OOK + 16QAM');
+
+%You need to import p and u0 to plot the spectrum.
+%fig_handle= figure(100); plot_spectrum(p,u0);title(['Modulator output optical waveform']);axis(fig_handle.CurrentAxes, [-400, 400, -60, 25]);
+
+%Import data from fig
+% f=openfig('C:\Users\diegoro\Desktop\compare.fig')
+% h=findobj(f,'type','line');
+% x_data=get(h,'xdata');
+% y_data=get(h,'ydata');
+% 
+% plot(x_data{1},y_data{1},'-o')
+
+%Theoretical Q
+% Q_th=[0 1 2 3 4 5 6 7 8 9]
+% BER_th=1/2*erfc(Q_th/sqrt(2))
+% semilogy(Q_th(1:5),BER_th(1:5),'-o')
+
+
