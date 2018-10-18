@@ -5,7 +5,7 @@ close all;
 % Analyze results, OOK-QAM-OOK, power of OOK = -5 dBm
 
 %% Load data
-load 'ssf_a_1_lattice_snr-1qam2ook.mat'
+load 'ssf_a_1_lattice_snr.mat'
 
 power_qam_dbm = zeros(30, 17);
 bw_qam_ghz = zeros(30, 17);
@@ -30,16 +30,19 @@ snr_qam2(snr_ook<ook_th) = 0;
 figure; hold on;
 grid on;
 box on;
-contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [50, 100, 200], ...
-    'showtext', 'off', 'linewidth', 2)
+% contour(bw_qam_ghz, power_qam_dbm, snr_qam2, [50, 100, 200], ...
+%     'showtext', 'on', 'linewidth', 2)
 contour(bw_qam_ghz, power_qam_dbm, snr_qam, [50, 100, 200], ...
-    'showtext', 'off', 'linewidth', 2)
+    'showtext', 'on', 'linewidth', 2)
 % contour(bw_qam_ghz, power_qam_dbm, snr_ook)
 xlabel('Baud rate (GHz)')
 ylabel('Power (dBm)')
 % colorbar
-title(sprintf('QAM SNR with OOK SNR > %d', ook_th))
+title(sprintf('QAM SNR'))
+
+% title(sprintf('QAM SNR with OOK SNR > %d', ook_th))
 
 figure;
 contour(bw_qam_ghz, power_qam_dbm, snr_ook, [1, 5, 10, 20], ...
     'showtext', 'on', 'linewidth', 2)
+title(sprintf('OOK SNR'))

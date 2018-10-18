@@ -96,7 +96,7 @@ parfor n=1:length(power_dbm_ook)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
-filename = 'ssf_a_2_compare_with_diego_ook_3_065.mat';
+filename = 'ssf_a_2_compare_with_diego_ook_3_07.mat';
 save(filename, '-v7.3')
 
 %%
