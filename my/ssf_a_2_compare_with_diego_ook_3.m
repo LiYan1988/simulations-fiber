@@ -40,7 +40,7 @@ time_elapsed = zeros(size(power_dbm_ook));
 param_mp = cell(size(power_dbm_ook));
 
 
-parfor n=1:length(power_dbm_ook)
+for n=1:length(power_dbm_ook)
     fprintf('%d of %d iterations\n', n, length(power_dbm_ook))
 %     t = tic;
     param_tmp = configure_channels_default_8(param, ...
