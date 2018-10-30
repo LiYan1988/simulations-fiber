@@ -18,3 +18,6 @@
 % axis
 % 3. Configure specific simulation parameters
 % 4. Generate signals
+% 5. SSF
+% 6. DSP
+% 7. Visualize

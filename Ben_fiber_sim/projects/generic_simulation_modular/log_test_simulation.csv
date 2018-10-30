@@ -27989,3 +27989,19 @@
 2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, Coherent receiver complete
 2018-10-10 18:05:20, Simulation ID, 2018-10-10_18.05.03, Post-processing Complete
 
+2018-10-30 10:09:32, Simulation ID, 2018-10-30_10.09.32, sim_transmitter Started
+2018-10-30 10:45:33, Simulation ID, 2018-10-30_10.45.33, sim_transmitter Started
+2018-10-30 10:45:45, Simulation ID, 2018-10-30_10.45.45, sim_transmitter Started
+2018-10-30 21:37:06, Simulation ID, 2018-10-30_10.45.45, Generating Signal (generate_wdm_signal)
+2018-10-30 21:37:06, Simulation ID, 2018-10-30_10.45.45, Input CW power, -20.00 dBm
+2018-10-30 21:37:06, Simulation ID, 2018-10-30_10.45.45, Generated channel 1 with 16384 symbols, Signal power after modulation, -20.00 dBm, Center frequency, 0.00 GHz (Relative to 193.41 THz)
+2018-10-30 21:37:06, Simulation ID, 2018-10-30_10.45.45, Signal Generation Complete
+2018-10-30 21:37:34, Simulation ID, 2018-10-30_10.45.45, sim_transmitter Complete
+
+2018-10-30 10:45:45, Simulation ID, 2018-10-30_10.45.45, sim_link Started
+2018-10-30 21:38:37, Simulation ID, 2018-10-30_10.45.45, WDM power is -2.000000e+01 dBm
+2018-10-30 21:38:48, Simulation ID, 2018-10-30_10.45.45, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-30 21:38:49, Simulation ID, 2018-10-30_10.45.45, NLSE solver completed
+2018-10-30 21:38:55, Simulation ID, 2018-10-30_10.45.45, SMF: Propagated 82 km
+2018-10-30 21:39:31, Simulation ID, 2018-10-30_10.45.45, Starting NLSE split-step solver with 100 steps (820.00 m per step 100 steps per L_NL)
+2018-10-30 21:39:38, Simulation ID, 2018-10-30_10.45.45, NLSE solver completed
