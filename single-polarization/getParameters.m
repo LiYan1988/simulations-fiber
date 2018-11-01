@@ -210,7 +210,7 @@ if isfield(param.result, 'logFileName')
     % Open log file in append mode
     param.result.logFid = fopen(param.result.logFileName, 'a');
     if param.result.logFid == -1
-        warning('Cound not open log file')
+        warning('Could not open log file')
     end
 end
 
