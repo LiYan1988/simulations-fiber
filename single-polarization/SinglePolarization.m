@@ -31,9 +31,11 @@ classdef SinglePolarization
         
         % Links
         linkArray
-        
         % Channels
         channelArray
+        
+        % Simulation related
+        fmax
     end
     
     properties (Dependent)
@@ -69,6 +71,11 @@ classdef SinglePolarization
             obj.linkArray = p.Results.linkArray;
             obj.channelArray = p.Results.channelArray;
             
+            %% Sort channel array
+            freq = [obj.channelArray.centerFrequency];
+            [~, idx] = sort(freq);
+            obj.channelArray = obj.channelArray(idx);
+            
             %% Setup result folder and log file
             % Result folder
             if ~exist(obj.resultFolder, 'dir')
@@ -85,6 +92,17 @@ classdef SinglePolarization
                 fprintf(obj.logFid, 'Simulation Name, Simulation id\n');
                 fprintf(obj.logFid, '%s, %d\n', obj.simulationName, obj.simulationId);
             end
+            
+            %% Calculate fmax
+            % The spectrum is from -fmax to fmax
+            symbolRate = [obj.channelArray.symbolRate];
+            samplePerSymbol = [obj.channelArray.minSamplePerSymbol];
+            fmax1 = max(symbolRate.*samplePerSymbol);
+            centerFrequency = [obj.channelArray.centerFrequency];
+            centerFrequency = abs(centerFrequency);
+            fmax2 = max(centerFrequency+0.5*symbolRate);
+            obj.fmax = 2^nextpow2(max(fmax1, fmax2)*1.5);
+            
         end
         
         function numberLink = get.numberLink(obj)
@@ -93,16 +111,7 @@ classdef SinglePolarization
         
         function numberChannel = get.numberChannel(obj)
             numberChannel = length(obj.channelArray);
-        end
-        
-        function obj = sortChannelArray(obj)
-            % Sort channelArray, reorder channelArray according to their
-            % center frequencies
-            freq = [obj.channelArray.centerFrequency];
-            [~, idx] = sort(freq);
-            obj.channelArray = obj.channelArray(idx);
-        end
-        
+        end        
     end
 end
 

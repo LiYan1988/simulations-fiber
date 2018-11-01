@@ -28,5 +28,4 @@ sp = SinglePolarization('linkArray', linkArray, 'channelArray', channelArray);
 fclose(sp.logFid);
 
 %% Channels
-sp = sortChannelArray(sp);
-freq2 = [sp.channelArray.centerFrequency];
+disp(sp.fmax/1e9)
