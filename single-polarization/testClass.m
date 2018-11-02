@@ -12,14 +12,16 @@ channelArray(2) = Channel('modulation', '16QAM', 'symbolRate', 32e9, ...
     'centerFrequency', 0e9, 'firFactor', 0.2, ...
     'minSamplePerSymbol', 16, 'minNumberSymbol', 2^14);
 
-linkArray(2) = Link('spanLength', 80e3, 'D', 1.6e-5, 'S', 0, ...
-    'alphadB', 0.25e-3, 'gamma', 1.5e-3, 'NFdB', 6, 'DCFLength', 80e3, ...
-    'numberSteps', 200);
+% linkArray(2) = Link('spanLength', 80e3, 'D', 1.6e-5, 'S', 0, ...
+%     'alphadB', 0.25e-3, 'gamma', 1.5e-3, 'NFdB', 6, 'DCFLength', 80e3, ...
+%     'numberSteps', 200);
+linkArray(2) = Link();
 
 %% Partial default values
 channelArray(3) = Channel('centerFrequency', 50e9);
 
-linkArray(3) = Link('DCFLength', 90e3);
+% linkArray(3) = Link('DCFLength', 90e3);
+linkArray(3) = Link();
 
 %% Wrong values throws an error
 % link(4) = Link('modulation', '32QAM');
@@ -45,5 +47,10 @@ N = sp.N;
 % plot(t, abs(sp.channelArray(3).dataTime))
 plot(t, abs(sp.txSignalTime))
 
-%% Plot Spectrum domain signal
+%% Plot spectrum domain signal
 plot(omega/2/pi, 10*log10(abs(sp.txSignalSpectrum).^2*1e12))
+
+%% Plot spectrum domain signal after transmission
+sp.simulate();
+figure;
+plot(omega/2/pi, 10*log10(abs(sp.currentSignalSpectrum).^2*1e12))

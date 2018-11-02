@@ -30,14 +30,19 @@ classdef Link < matlab.mixin.Copyable
         alphaLinear
         % Kerr nonlinearity [1/W/m]
         gamma
-        % Number of steps
-        numberSteps
         % Noise figure in dB [dB]
         NFdB
         % nsp
         nsp
-        % DCF length [km]
+        % DCF length [m]
         DCFLength
+        
+        % Number of steps
+        numberSteps
+        % Step length [m]
+        dz
+        % Effective step length [m]
+        dzEff
     end
     
     methods
@@ -48,7 +53,7 @@ classdef Link < matlab.mixin.Copyable
             
             %% Parse input
             p = inputParser;
-
+            
             addParameter(p, 'spanLength', 82e3, @isnumeric);
             addParameter(p, 'D', 1.7e-5, @isnumeric);
             addParameter(p, 'S', -21.93548387096774, @isnumeric);
@@ -84,6 +89,14 @@ classdef Link < matlab.mixin.Copyable
             obj.NFdB = p.Results.NFdB;
             obj.nsp = 10^(obj.NFdB/10)/2;
             obj.DCFLength = p.Results.DCFLength;
+            
+            %% Simulation related parameters
+            obj.dz = obj.spanLength/obj.numberSteps;
+            if obj.alphaLinear>0
+                obj.dzEff = (1-exp(-obj.alphaLinear*obj.dz))/obj.alphaLinear;
+            else
+                obj.dzEff = obj.dz;
+            end
         end
     end
 end

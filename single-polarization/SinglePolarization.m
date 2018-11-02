@@ -152,7 +152,7 @@ classdef SinglePolarization < handle
                 generateSignal(obj.channelArray(n), obj);
             end
             % Transmitted signal in spectrum domain
-            obj.txSignalSpectrum = ft(obj.txSignalTime, obj.dt);
+            obj.txSignalSpectrum = ft(obj.txSignalTime, obj.domega);
             
             % Current signal in time and spectrum domains
             obj.currentSignalTime = obj.txSignalTime;
@@ -165,6 +165,12 @@ classdef SinglePolarization < handle
         
         function numberChannel = get.numberChannel(obj)
             numberChannel = length(obj.channelArray);
+        end
+        
+        function simulate(obj)
+            for n=1:obj.numberLink
+                ssf(obj, n);
+            end
         end
     end
 end
@@ -342,12 +348,57 @@ channel.dataTime = channel.dataTime.*...
 obj.txSignalTime = obj.txSignalTime+channel.dataTime;
 end
 
-function xf = ft(xt, df)
+function xf = ft(xt, domega)
 % Fourier transform
-xf = fftshift(ifft(fftshift(xt)))/sqrt(df/(2*pi));
+xf = fftshift(ifft(fftshift(xt)))/sqrt(domega/(2*pi));
 end
 
-function xt = ift(xf, df)
+function xt = ift(xf, domega)
 % Inverse Fourier transform
-xt = fftshift(fft(fftshift(xf)))*sqrt(df/(2*pi));
+xt = fftshift(fft(fftshift(xf)))*sqrt(domega/(2*pi));
+end
+
+function ssf(obj, linkIdx)
+% Split step Fourier
+
+link = obj.linkArray(linkIdx);
+
+%% Dispersive and nonlinear phase factors
+dispersion2 = exp(0.5*1i*link.beta2*obj.omega.^2*link.dz);
+dispersion3 = exp(1i/6*link.beta3*obj.omega.^3*link.dz);
+dispersion = dispersion2.*dispersion3;
+hhz = 1i*link.gamma*link.dzEff;
+
+%% Main loop
+% scheme: 1/2N -> D -> 1/2N; first half step nonlinear
+uu = obj.currentSignalTime;
+temp = uu.*exp(abs(uu).^2.*hhz/2); % note hhz/2
+for n=1:link.numberSteps
+    % dispersion
+    uu = ift(ft(temp, obj.domega).*dispersion, obj.domega);
+    % nonlinearity
+    temp = uu.*exp(abs(uu).^2.*hhz).*exp(-0.5*link.alphaLinear*link.dz);
+end
+uu = temp.*exp(-abs(uu).^2.*hhz/2); % Final field
+
+%% EDFA
+uu = uu*exp(0.5*link.alphaLinear*link.spanLength);
+
+% Power spectral density (PSD) of ASE noise, G=(exp(alpha*L)-1)*h*nu*nsp
+noisePower = (exp(link.alphaLinear*link.spanLength))*link.h*link.nu*link.nsp;
+% Convert PSD to signal power in the time domain
+noisePower = noisePower*obj.N*obj.domega/(2*pi);
+% add noise
+uu = uu + sqrt(0.5*noisePower)*(randn(size(uu, 1), 1)+1i*randn(size(uu, 1), 1));
+
+%% Output signal in time and spectrum domains
+temp = ft(uu, obj.domega);
+
+obj.currentSignalTime = uu;
+obj.currentSignalSpectrum = temp;
+end
+
+function dsp(obj)
+% DSP at receiver
+
 end
