@@ -27,6 +27,7 @@ linkArray(3) = Link('DCFLength', 90e3);
 %% SinglePolarization
 sp = SinglePolarization('linkArray', linkArray, 'channelArray', channelArray);
 fclose(sp.logFid);
+clearvars linkArray channelArray
 
 %% Time and frequency axis
 dt = sp.dt;
@@ -36,4 +37,8 @@ domega = sp.domega;
 N = sp.N;
 
 %% Plot dataTime 
-plot(t, abs(channelArray(2).dataTime))
+plot(t, abs(sp.channelArray(2).dataTime))
+figure;
+plot(t, abs(sp.channelArray(1).dataTime))
+figure;
+plot(t, abs(sp.channelArray(3).dataTime))

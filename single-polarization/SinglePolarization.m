@@ -83,8 +83,8 @@ classdef SinglePolarization
             obj.randomSeed = p.Results.randomSeed;
             obj.resultFolder = p.Results.resultFolder;
             obj.logFile = sprintf('%s_%d.csv', obj.simulationName, obj.simulationId);
-            obj.linkArray = p.Results.linkArray;
-            obj.channelArray = p.Results.channelArray;
+            obj.linkArray = copy(p.Results.linkArray);
+            obj.channelArray = copy(p.Results.channelArray);
             
             %% Set random seed for Matlab
             rng(obj.randomSeed)
@@ -138,7 +138,7 @@ classdef SinglePolarization
             
             %% Generate signals
             for n=1:obj.numberChannel
-                obj.channelArray(n).generateSignal();
+                generateSignal(obj.channelArray(n));
             end
         end
         
@@ -232,4 +232,60 @@ actualNumberSymbol = totalTime./symbolTime;
 
 % Compute tmax [s], convert back to second
 tmax = totalTime/2/1e15;
+end
+
+function generateOOK(channel)
+% Generate NRZ OOK without carrier suppress
+
+% Generate bit stream
+channel.dataBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+
+% Symbol stream
+channel.dataSymbol = channel.dataBit;
+channel.dataTime = repmat(channel.dataBit, 1, channel.actualSamplePerSymbol).';
+channel.dataTime = channel.dataTime(:);
+dataTimeLength = length(channel.dataTime);
+
+% Generate Gauss FIR
+channel.fir = gaussdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol);
+% Pass dataTime through FIR
+channel.dataTime = upfirdn(channel.dataTime, channel.fir);
+% FIR delay in number of samples
+firOverhead = (length(channel.fir)-1)/2;
+% Remove head and tail added by FIR and convolution inside upfirdn
+s = (firOverhead+1):(firOverhead+dataTimeLength);
+channel.dataTime = channel.dataTime(s);
+end
+
+function generate16QAM(channel)
+% Generate 16QAM bits
+channel.dataBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+
+% Symbols
+channel.dataSymbol = bi2de(channel.dataBit);
+channel.dataSymbol = qammod(channel.dataSymbol, channel.constellationSize);
+channel.dataSymbol = channel.dataSymbol/sqrt(mean(abs(channel.dataSymbol).^2)); %
+
+% Square root raised cosine FIR
+channel.fir = rcosdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol, 'sqrt');
+% Length of dataTime
+dataTimeLength = channel.actualSamplePerSymbol*channel.actualNumberSymbol;
+% Pass through FIR with upsample
+channel.dataTime = upfirdn(channel.dataSymbol, channel.fir, channel.actualSamplePerSymbol);
+% Remove head and tail of dataTime
+% This is the head to be removed, because the output length of FIR is
+% ceil(((length(xin)-1)*p+length(h))/q) for yout = upfirdn(xin,h,p,q)
+% See Matlab reference of upfirdn and conv
+firOverhead = floor((length(channel.fir)-channel.actualSamplePerSymbol)/2);
+s = (firOverhead+1):(firOverhead+dataTimeLength);
+channel.dataTime = channel.dataTime(s);
+end
+
+function generateSignal(channel)
+% Generate signal according to modulation format
+if strcmp(channel.modulation, 'OOK')
+    generateOOK(channel);
+elseif strcmp(channel.modulation, '16QAM')
+    generate16QAM(channel);
+end
 end

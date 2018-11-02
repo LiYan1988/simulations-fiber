@@ -1,6 +1,6 @@
-classdef Channel < handle
+classdef Channel < matlab.mixin.Copyable
     %Channel class
-    %   Detailed explanation goes here
+    %   Data container of channel data
     % TODO:
     %   1. make Channel copyable, implement copyElement method
     %   2. Channel is used as a data container, so many move all methods to
@@ -106,65 +106,4 @@ classdef Channel < handle
             end
         end
     end
-    
-    %% Methods can be accessed by SinglePolarization
-    methods (Access={?SinglePolarization})
-        function obj = generateSignal(obj)
-            if strcmp(obj.modulation, 'OOK')
-                [obj.dataBit, obj.dataSymbol, obj.dataTime, obj.fir] = ...
-                    generateOOK(obj);
-            elseif strcmp(obj.modulation, '16QAM')
-                [obj.dataBit, obj.dataSymbol, obj.dataTime, obj.fir] = ...
-                    generate16QAM(obj);
-            end
-        end
-    end
-end
-
-%% Helper Functions for Class Methods
-function [dataBit, dataSymbol, dataTime, fir] = generateOOK(obj)
-% Generate NRZ OOK without carrier suppress
-
-% Generate bit stream
-dataBit = randi([0, 1], obj.actualNumberSymbol, obj.bitPerSymbol);
-
-% Symbol stream
-dataSymbol = dataBit;
-dataTime = repmat(dataBit, 1, obj.actualSamplePerSymbol).';
-dataTime = dataTime(:);
-dataTimeLength = length(dataTime);
-
-% Generate Gauss FIR
-fir = gaussdesign(obj.firFactor, obj.symbolInFir, obj.actualSamplePerSymbol);
-% Pass dataTime through FIR
-dataTime = upfirdn(dataTime, fir);
-% FIR delay in number of samples
-firOverhead = (length(fir)-1)/2;
-% Remove head and tail added by FIR and convolution inside upfirdn
-s = (firOverhead+1):(firOverhead+dataTimeLength);
-dataTime = dataTime(s);
-end
-
-function [dataBit, dataSymbol, dataTime, fir] = generate16QAM(obj)
-% Generate 16QAM bits
-dataBit = randi([0, 1], obj.actualNumberSymbol, obj.bitPerSymbol);
-
-% Symbols
-dataSymbol = bi2de(dataBit);
-dataSymbol = qammod(dataSymbol, obj.constellationSize);
-dataSymbol = dataSymbol/sqrt(mean(abs(dataSymbol).^2)); % 
-
-% Square root raised cosine FIR
-fir = rcosdesign(obj.firFactor, obj.symbolInFir, obj.actualSamplePerSymbol, 'sqrt');
-% Length of dataTime
-dataTimeLength = obj.actualSamplePerSymbol*obj.actualNumberSymbol;
-% Pass through FIR with upsample
-dataTime = upfirdn(dataSymbol, fir, obj.actualSamplePerSymbol);
-% Remove head and tail of dataTime
-% This is the head to be removed, because the output length of FIR is 
-% ceil(((length(xin)-1)*p+length(h))/q) for yout = upfirdn(xin,h,p,q)
-% See Matlab reference of upfirdn and conv
-firOverhead = floor((length(fir)-obj.actualSamplePerSymbol)/2);
-s = (firOverhead+1):(firOverhead+dataTimeLength);
-dataTime = dataTime(s);
 end
