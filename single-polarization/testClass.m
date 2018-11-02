@@ -1,6 +1,7 @@
 %% Test Channel and Link classes
 clc;
 clear;
+close all;
 
 %% Default properties
 channelArray = Channel();
@@ -8,7 +9,7 @@ linkArray = Link();
 
 %% Other property values
 channelArray(2) = Channel('modulation', '16QAM', 'symbolRate', 32e9, ...
-    'centerFrequency', 50e9, 'filterFactor', 0.2, ...
+    'centerFrequency', 50e9, 'firFactor', 0.2, ...
     'minSamplePerSymbol', 16);
 
 linkArray(2) = Link('spanLength', 80e3, 'D', 1.6e-5, 'S', 0, ...
@@ -26,6 +27,18 @@ linkArray(3) = Link('DCFLength', 90e3);
 %% SinglePolarization
 sp = SinglePolarization('linkArray', linkArray, 'channelArray', channelArray);
 fclose(sp.logFid);
+clearvars linkArray channelArray
 
-%% Channels
-disp(sp.fmax/1e9)
+%% Time and frequency axis
+dt = sp.dt;
+t = sp.t;
+omega = sp.omega;
+domega = sp.domega;
+N = sp.N;
+
+%% Plot dataTime 
+plot(t, abs(sp.channelArray(2).dataTime))
+figure;
+plot(t, abs(sp.channelArray(1).dataTime))
+figure;
+plot(t, abs(sp.channelArray(3).dataTime))

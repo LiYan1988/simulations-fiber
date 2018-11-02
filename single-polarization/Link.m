@@ -1,6 +1,6 @@
-classdef Link
-    %Fiber link
-    %   Detailed explanation goes here
+classdef Link < matlab.mixin.Copyable
+    %Link class
+    %   Data container of link data
     
     properties (Constant)
         % [m/s], Speed of light
