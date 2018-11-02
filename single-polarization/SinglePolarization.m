@@ -15,13 +15,14 @@ classdef SinglePolarization
     end
     
     %% Regular simulation data
-    properties
+    properties (GetAccess=public, SetAccess=private)
         % Simulation Name
         simulationName
         % Simulation id
         simulationId
         % Random seed
         randomSeed = 0;
+        
         % Result folder name
         resultFolder
         % Log file name
@@ -34,10 +35,24 @@ classdef SinglePolarization
         % Channels
         channelArray
         
-        % Simulation related
+        % Max spectrum bandwidth [Hz], the total spectrum ranges from -fmax
+        % to fmax
         fmax
+        % Max time span [s], the total time ranges from -tmax to tmax
+        tmax
+        % Number of samples in simulation
+        N
+        % delta omega [rad/s]
+        domega
+        % omega axis [rad/s], a column vector
+        omega
+        % delta time [s]
+        dt
+        % time axis [s], a column vector
+        t
     end
     
+    %% Dependent parameters
     properties (Dependent)
         numberLink
         numberChannel
@@ -71,6 +86,9 @@ classdef SinglePolarization
             obj.linkArray = p.Results.linkArray;
             obj.channelArray = p.Results.channelArray;
             
+            %% Set random seed for Matlab
+            rng(obj.randomSeed)
+            
             %% Sort channel array
             freq = [obj.channelArray.centerFrequency];
             [~, idx] = sort(freq);
@@ -94,15 +112,34 @@ classdef SinglePolarization
             end
             
             %% Calculate fmax
-            % The spectrum is from -fmax to fmax
-            symbolRate = [obj.channelArray.symbolRate];
-            samplePerSymbol = [obj.channelArray.minSamplePerSymbol];
-            fmax1 = max(symbolRate.*samplePerSymbol);
-            centerFrequency = [obj.channelArray.centerFrequency];
-            centerFrequency = abs(centerFrequency);
-            fmax2 = max(centerFrequency+0.5*symbolRate);
-            obj.fmax = 2^nextpow2(max(fmax1, fmax2)*1.5);
+            % The spectrum axis ranges from -fmax to fmax
+            [obj.fmax, actualSamplePerSymbol] = computeTotalSpectrum(obj);
+            for n=1:obj.numberChannel
+                obj.channelArray(n).actualSamplePerSymbol = ...
+                    actualSamplePerSymbol(n);
+            end
             
+            %% Calculate tmax
+            % The time axis ranges from -tmax to tmax
+            [obj.tmax, actualNumberSymbol] = computeTotalTime(obj);
+            for n=1:obj.numberChannel
+                obj.channelArray(n).actualNumberSymbol = ...
+                    actualNumberSymbol(n);
+            end
+            
+            %% Create spectrum and time axis
+            obj.N = 4*obj.tmax*obj.fmax;
+            
+            obj.domega = 4*pi*obj.fmax/obj.N;
+            obj.omega = (-obj.N/2:obj.N/2-1).'*obj.domega;
+            
+            obj.dt = 2*obj.tmax/obj.N;
+            obj.t = (-obj.N/2:obj.N/2-1).'*obj.dt;
+            
+            %% Generate signals
+            for n=1:obj.numberChannel
+                obj.channelArray(n).generateSignal();
+            end
         end
         
         function numberLink = get.numberLink(obj)
@@ -111,8 +148,88 @@ classdef SinglePolarization
         
         function numberChannel = get.numberChannel(obj)
             numberChannel = length(obj.channelArray);
-        end        
+        end
     end
 end
 
 %% Helper Functions for Class Methods
+function [fmax, actualSamplePerSymbol] = computeTotalSpectrum(obj)
+% Compute the total spectrum bandwidth for simulation
+% Inputs:
+%   obj: SinglePolarization object
+% Outputs:
+%   fmax: the single side bandwidth of the total spectrum, the overall
+%       total bandwidth is 2*fmax
+%   actualSamplePerSymbol: actual sample per symbol when fmax is
+%       computed
+
+symbolRate = [obj.channelArray.symbolRate];
+minSamplePerSymbol = [obj.channelArray.minSamplePerSymbol];
+% Bounds of channel spectrum, which should be covered by the half total
+% spectrum
+channelSpectrumBound = abs([obj.channelArray.centerFrequency])+...
+    symbolRate/2;
+
+% Compute the least common multiple of all symbol rates
+totalSpectrum = 1;
+for n=1:length(symbolRate)
+    totalSpectrum = lcm(totalSpectrum, symbolRate(n));
+end
+
+% Check if the sample per symbol is greater than the minimum
+% for all the channels. If not, multiply with 2 until it satisfies the
+% requirement.
+for n=1:length(minSamplePerSymbol)
+    while totalSpectrum/symbolRate(n)<minSamplePerSymbol(n)
+        totalSpectrum = 2*totalSpectrum;
+    end
+end
+
+% Check that all the channels are within the total spectrum
+for n=1:length(channelSpectrumBound)
+    while totalSpectrum/2<channelSpectrumBound(n)
+        totalSpectrum = 2*totalSpectrum;
+    end
+end
+
+% Compute actual sample per symbol
+actualSamplePerSymbol = totalSpectrum./symbolRate;
+
+% fmax
+fmax = totalSpectrum/2;
+end
+
+function [tmax, actualNumberSymbol] = computeTotalTime(obj)
+% Compute the total time span for simulation
+% Inputs:
+%   obj: SinglePolarization object
+% Outputs:
+%   tmax: the single side time span of the simulation, the overall
+%       total time span is 2*tmax
+%   actualNumberSymbol: actual number of symbols when tmax is computed
+
+% Symbol time [fs], convert to fs so that all symbol times are integer
+symbolTime = 1e15./[obj.channelArray.symbolRate];
+minNumberSymbol = [obj.channelArray.minNumberSymbol];
+
+% Compute the least common multiple of all symbol times
+totalTime = 1;
+for n=1:length(symbolTime)
+    totalTime = lcm(totalTime, symbolTime(n));
+end
+
+% Check if the total symbol time is greater than the minimum
+% for all the channels. If not, multiply with 2 untile it satisfies all
+% the requirements.
+for n=1:length(minNumberSymbol)
+    while totalTime/symbolTime(n)<minNumberSymbol(n)
+        totalTime = 2*totalTime;
+    end
+end
+
+% Compute actual number of symbols for every channel
+actualNumberSymbol = totalTime./symbolTime;
+
+% Compute tmax [s], convert back to second
+tmax = totalTime/2/1e15;
+end
