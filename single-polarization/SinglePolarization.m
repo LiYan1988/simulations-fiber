@@ -14,6 +14,12 @@ classdef SinglePolarization < handle
         nu = 1.934144890322581e+14;
     end
     
+    %% Simulation parameters that can be set by users
+    properties (Access=public)
+        % User parallel in kmeans
+        useParallel
+    end
+    
     %% Regular simulation data
     properties (GetAccess=public, SetAccess=private)
         % Simulation Name
@@ -82,6 +88,7 @@ classdef SinglePolarization < handle
             addParameter(p, 'logFile', '', @ischar);
             addParameter(p, 'linkArray', Link(), @(x) isa(x, 'Link'));
             addParameter(p, 'channelArray', Channel(), @(x) isa(x, 'Channel'));
+            addParameter(p, 'useParallel', true, @islogical);
             
             % Parse inputs
             parse(p, varargin{:});
@@ -94,7 +101,7 @@ classdef SinglePolarization < handle
             obj.logFile = sprintf('%s_%d.csv', obj.simulationName, obj.simulationId);
             obj.linkArray = copy(p.Results.linkArray);
             obj.channelArray = copy(p.Results.channelArray);
-            
+            obj.useParallel = p.Results.useParallel;
             %% Set random seed for Matlab
             rng(obj.randomSeed)
             
@@ -137,7 +144,7 @@ classdef SinglePolarization < handle
             end
             
             %% Create spectrum and time axis
-            obj.N = 4*obj.tmax*obj.fmax;
+            obj.N = ceil(4*obj.tmax*obj.fmax);
             
             obj.domega = 4*pi*obj.fmax/obj.N;
             obj.omega = (-obj.N/2:obj.N/2-1).'*obj.domega;
@@ -148,9 +155,7 @@ classdef SinglePolarization < handle
             %% Generate signals
             % Transmitted signal in time domain
             obj.txSignalTime = zeros(obj.N, 1);
-            for n=1:obj.numberChannel
-                generateSignal(obj.channelArray(n), obj);
-            end
+            generateSignal(obj);
             % Transmitted signal in spectrum domain
             obj.txSignalSpectrum = ft(obj.txSignalTime, obj.domega);
             
@@ -167,9 +172,25 @@ classdef SinglePolarization < handle
             numberChannel = length(obj.channelArray);
         end
         
+        %% Simulate transmission and Receiver
         function simulate(obj)
+            %% Transmission
             for n=1:obj.numberLink
                 ssf(obj, n);
+            end
+            
+            %% Receiver
+            % Dispersion compensation
+            dispersionCompensation(obj);
+            for n=1:obj.numberChannel
+                downConvert(obj, n);
+                synchronize(obj, n);
+                matchReceivedSignal(obj, n);
+                findCloudCenter(obj, n);
+                matchConstellation(obj, n);
+                computeSER(obj, n);
+                computeSNR(obj, n);
+                computeEVM(obj, n);
             end
         end
     end
@@ -189,9 +210,9 @@ function [fmax, actualSamplePerSymbol] = computeTotalSpectrum(obj)
 symbolRate = [obj.channelArray.symbolRate];
 minSamplePerSymbol = [obj.channelArray.minSamplePerSymbol];
 % Bounds of channel spectrum, which should be covered by the half total
-% spectrum
+% spectrum. The factor of 10 leaves enough margin for the channel spectrum
 channelSpectrumBound = abs([obj.channelArray.centerFrequency])+...
-    symbolRate/2;
+    symbolRate*10;
 
 % Compute the least common multiple of all symbol rates
 totalSpectrum = 1;
@@ -249,103 +270,109 @@ for n=1:length(minNumberSymbol)
         totalTime = 2*totalTime;
     end
 end
+% totalTime = totalTime*1.1;
 
 % Compute actual number of symbols for every channel
-actualNumberSymbol = totalTime./symbolTime;
+actualNumberSymbol = ceil(totalTime./symbolTime);
 
 % Compute tmax [s], convert back to second
 tmax = totalTime/2/1e15;
 end
 
-function generateOOK(channel)
+function generateOOK(obj, channelIdx)
 % Generate NRZ OOK without carrier suppress
+channel = obj.channelArray(channelIdx);
+assert (strcmp(channel.modulation, 'OOK'))
 
 % Generate bit stream
-channel.dataBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+channel.txBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
 % The first and last ceil(channel.symbolInFir/2) symbols are affected by
 % FIR convolution effects. Set them to 0 to eliminate this effect.
 halfFirSymbolLength = ceil(channel.symbolInFir/2);
-channel.dataBit(1:halfFirSymbolLength) = 0;
-channel.dataBit(end-halfFirSymbolLength+1:end) = 0;
+channel.txBit(1:halfFirSymbolLength) = 0;
+channel.txBit(end-halfFirSymbolLength+1:end) = 0;
 
 % Symbol stream
-channel.dataSymbol = channel.dataBit;
-channel.dataTime = repmat(channel.dataBit, 1, channel.actualSamplePerSymbol).';
-channel.dataTime = channel.dataTime(:);
-dataTimeLength = length(channel.dataTime);
+channel.txSymbol = channel.txBit;
+channel.txTime = repmat(channel.txBit, 1, channel.actualSamplePerSymbol).';
+channel.txTime = channel.txTime(:);
+dataTimeLength = obj.N;
 
 % Generate Gauss FIR
 channel.fir = gaussdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol);
-% Pass dataTime through FIR
-channel.dataTime = upfirdn(channel.dataTime, channel.fir);
+% Pass txTime through FIR
+channel.txTime = upfirdn(channel.txTime, channel.fir);
 
 % Shift signal randomly within one symbol time
 channel.shiftNumberSample = randi([0, channel.actualSamplePerSymbol-1]);
-% channel.dataTime = [zeros(channel.shiftNumberSample, 1); ...
-%     channel.dataTime(1:end-channel.shiftNumberSample)];
-channel.dataTime = circshift(channel.dataTime, channel.shiftNumberSample);
+channel.txTime = circshift(channel.txTime, channel.shiftNumberSample);
 
 % FIR delay in number of samples
 firOverhead = ceil((length(channel.fir)-1)/2);
 % Remove head and tail added by FIR and convolution inside upfirdn
 s = (firOverhead+1):(firOverhead+dataTimeLength);
-channel.dataTime = channel.dataTime(s);
+channel.txTime = channel.txTime(s);
 end
 
-function generate16QAM(channel)
+function generate16QAM(obj, channelIdx)
 % Generate 16QAM bits
-channel.dataBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+channel = obj.channelArray(channelIdx);
+assert (strcmp(channel.modulation, '16QAM'))
+
+channel.txBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
 % The first and last ceil(channel.symbolInFir/2) symbols are affected by
 % FIR convolution effects. Set them to 0 to eliminate this effect.
 halfFirSymbolLength = ceil(channel.symbolInFir/2);
-channel.dataBit(1:halfFirSymbolLength, :) = 0;
-channel.dataBit(end-halfFirSymbolLength+1:end, :) = 0;
+channel.txBit(1:halfFirSymbolLength, :) = 0;
+channel.txBit(end-halfFirSymbolLength+1:end, :) = 0;
 
 % Symbols
-channel.dataSymbol = bi2de(channel.dataBit);
-channel.dataSymbol = qammod(channel.dataSymbol, channel.constellationSize);
-channel.dataSymbol = channel.dataSymbol/sqrt(mean(abs(channel.dataSymbol).^2)); %
+channel.txSymbol = bi2de(channel.txBit);
+channel.txSymbol = qammod(channel.txSymbol, channel.constellationSize);
+channel.txSymbol = channel.txSymbol/sqrt(mean(abs(channel.txSymbol).^2)); %
 
 % Square root raised cosine FIR
 channel.fir = rcosdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol, 'sqrt');
-% Length of dataTime
-dataTimeLength = channel.actualSamplePerSymbol*channel.actualNumberSymbol;
+% Length of txTime
+dataTimeLength = obj.N;
 % Pass through FIR with upsample
-channel.dataTime = upfirdn(channel.dataSymbol, channel.fir, channel.actualSamplePerSymbol);
+channel.txTime = upfirdn(channel.txSymbol, channel.fir, channel.actualSamplePerSymbol);
 
 % Shift signal randomly within one symbol time
 channel.shiftNumberSample = randi([0, channel.actualSamplePerSymbol-1]);
-% channel.dataTime = [zeros(channel.shiftNumberSample, 1); ...
-%     channel.dataTime(1:end-channel.shiftNumberSample)];
-channel.dataTime = circshift(channel.dataTime, channel.shiftNumberSample);
+channel.txTime = circshift(channel.txTime, channel.shiftNumberSample);
 
-% Remove head and tail of dataTime
+% Remove head and tail of txTime
 % This is the head to be removed, because the output length of FIR is
 % ceil(((length(xin)-1)*p+length(h))/q) for yout = upfirdn(xin,h,p,q)
 % See Matlab reference of upfirdn and conv
 firOverhead = ceil((length(channel.fir)-channel.actualSamplePerSymbol)/2);
 s = (firOverhead+1):(firOverhead+dataTimeLength);
-channel.dataTime = channel.dataTime(s);
+channel.txTime = channel.txTime(s);
 end
 
-function generateSignal(channel, obj)
+function generateSignal(obj)
 % Generate signal according to modulation format
-if strcmp(channel.modulation, 'OOK')
-    generateOOK(channel);
-elseif strcmp(channel.modulation, '16QAM')
-    generate16QAM(channel);
+
+for n=1:obj.numberChannel
+    channel = obj.channelArray(n);
+    if strcmp(channel.modulation, 'OOK')
+        generateOOK(obj, n);
+    elseif strcmp(channel.modulation, '16QAM')
+        generate16QAM(obj, n);
+    end
+    
+    % Assign power to the signal
+    powerNormalized = norm(channel.txTime)^2/obj.N;
+    channel.txTime = channel.txTime*sqrt(channel.powerW/powerNormalized);
+    
+    % Move in spectrum to its center frequency
+    channel.txTime = channel.txTime.*...
+        exp(-1i*2*pi*channel.centerFrequency.*obj.t);
+    
+    % Add channel signal to the total transmitted signal
+    obj.txSignalTime = obj.txSignalTime+channel.txTime;
 end
-
-% Assign power to the signal
-powerNormalized = norm(channel.dataTime)^2/obj.N;
-channel.dataTime = channel.dataTime*sqrt(channel.powerW/powerNormalized);
-
-% Move in spectrum to its center frequency
-channel.dataTime = channel.dataTime.*...
-    exp(-1i*2*pi*channel.centerFrequency.*obj.t);
-
-% Add channel signal to the total transmitted signal
-obj.txSignalTime = obj.txSignalTime+channel.dataTime;
 end
 
 function xf = ft(xt, domega)
@@ -371,7 +398,7 @@ hhz = 1i*link.gamma*link.dzEff;
 
 %% Main loop
 % scheme: 1/2N -> D -> 1/2N; first half step nonlinear
-uu = obj.currentSignalTime;
+uu = obj.currentSignalTime; % time domain signal
 temp = uu.*exp(abs(uu).^2.*hhz/2); % note hhz/2
 for n=1:link.numberSteps
     % dispersion
@@ -391,14 +418,225 @@ noisePower = noisePower*obj.N*obj.domega/(2*pi);
 % add noise
 uu = uu + sqrt(0.5*noisePower)*(randn(size(uu, 1), 1)+1i*randn(size(uu, 1), 1));
 
-%% Output signal in time and spectrum domains
-temp = ft(uu, obj.domega);
+%% DCF
+% DCF is an ideal FBG
+% Note the signs of beta2 and beta3 are changed to compensate for
+% dispersion
+fbg = exp(-0.5*1i*link.beta2*obj.omega.^2*link.DCFLength).*...
+    exp(-1i/6*link.beta3*obj.omega.^3*link.DCFLength);
 
+temp = ft(uu, obj.domega).*fbg;
+uu = ift(temp, obj.domega);
+
+%% Output signal in time and spectrum domains
 obj.currentSignalTime = uu;
 obj.currentSignalSpectrum = temp;
+
 end
 
-function dsp(obj)
-% DSP at receiver
+function dispersionCompensation(obj)
+% Compute residual dispersion eqivalent length
 
+fbg = ones(size(obj.omega));
+for n=1:obj.numberLink
+    link = obj.linkArray(n);
+    residualDispersionLength = link.spanLength-link.DCFLength;
+    fbg = fbg.*exp(-0.5*1i*link.beta2*obj.omega.^2*residualDispersionLength).*...
+        exp(-1i/6*link.beta3*obj.omega.^3*residualDispersionLength);
+end
+
+obj.currentSignalSpectrum = obj.currentSignalSpectrum.*fbg;
+obj.currentSignalTime = ift(obj.currentSignalSpectrum, obj.domega);
+
+end
+
+function downConvert(obj, channelIdx)
+% DSP at receiver
+signal = obj.currentSignalTime;
+channel = obj.channelArray(channelIdx);
+
+% Down convert
+signal = signal.*exp(1i*2*pi*channel.centerFrequency.*obj.t);
+signal = upfirdn(signal, channel.fir, 1, 1);
+
+% Compute overhead
+overhead = ceil((channel.fir-1)/2);
+signal = signal((overhead+1):(overhead+obj.N));
+
+channel.rxTime = signal;
+end
+
+function synchronize(obj, channelIdx)
+% Find the optimal place to sample the signal
+
+channel = obj.channelArray(channelIdx);
+% Copy received signal
+rxSignal = channel.rxTime;
+% Real and imaginary parts of the signal
+signal = zeros(size(rxSignal, 1), 2);
+signal(:, 1) = real(rxSignal);
+signal(:, 2) = imag(rxSignal);
+
+% Sum of distances from points to their centers
+sumDistance = zeros(channel.actualSamplePerSymbol, 1);
+% Sum of signal to noise ratios of all point clouds
+q = zeros(channel.actualSamplePerSymbol, 1);
+% Another measurement
+q2 = zeros(channel.actualSamplePerSymbol, 1);
+
+% Exhaustively try each possible sampling offset and calculate the two
+% measurements
+for nn=1:channel.actualSamplePerSymbol
+    % Downsample with the given offset
+    tmpSignal = downsample(signal, channel.actualSamplePerSymbol, nn-1);
+    % Instruct kmeans to use parallel threads
+    opts = statset('UseParallel', obj.useParallel);
+    [~, tmpCenters, tmpDistances] = ...
+        kmeans(tmpSignal, channel.constellationSize, ...
+        'Display', 'off', 'maxiter', 1000, ...
+        'Replicates', 4, 'Options', opts);
+    
+    sumDistance(nn) = sum(tmpDistances);
+    
+    tmpSignalPower = tmpCenters(:, 1)+1i*tmpCenters(:, 2);
+    tmpSignalPower0 = abs(tmpSignalPower-tmpSignalPower.');
+    
+    tmpSignalPower = tmpSignalPower0;
+    tmpSignalPower(tmpSignalPower==0) = inf;
+    tmpSignalPower = min(tmpSignalPower(:));
+    q(nn) = tmpSignalPower/sumDistance(nn);
+    
+    tmpq2 = tmpSignalPower0./(tmpDistances+tmpDistances.');
+    q2(nn) = mean(tmpq2(:));
+end
+[~, sumDistanceIdx] = min(sumDistance);
+[~, qIdx] = max(q);
+[~, q2Idx] = max(q2);
+channel.rxOptimalOffset = q2Idx;
+
+% Down sample received signal at the optimal offset
+signal = downsample(signal, channel.actualSamplePerSymbol, ...
+    channel.rxOptimalOffset-1);
+channel.rxSymbol = signal(:, 1)+1i*signal(:, 2);
+end
+
+function matchReceivedSignal(obj, channelIdx)
+% Match the received signal with the transmitted signal, so that later on
+% we can calculate SER, SNR, EVM, and so on.
+
+channel = obj.channelArray(channelIdx);
+% Transmitted symbols
+txSymbol = channel.txSymbol;
+% Received symbols
+rxSymbol = channel.rxSymbol;
+% Correlation between received and transmitted symbols
+[correlation, lag] = xcorr(rxSymbol, txSymbol);
+% Find the offset of the maximum correlation
+[~, maxIdx] = max(correlation);
+maxLag = lag(maxIdx);
+
+% if maxLag<0, rxSymbol remove abs(maxLag) tail elements and txSymbol
+% remove abs(maxLag) head elements
+% if maxLag>0, rxSymbol remove abs(maxLag) head elements and txSymbol
+% remove abs(maxLag) tail elements
+% if maxLag==0, keep them the same
+if maxLag<0
+    rxSymbol = rxSymbol(1:end+maxLag);
+    txSymbol= txSymbol(1-maxLag:end);
+elseif maxLag>0
+    rxSymbol = rxSymbol(1+maxLag:end);
+    txSymbol = txSymbol(1:end-maxLag);
+end
+channel.rxSymbolMatched = rxSymbol;
+channel.txSymbolMatched = txSymbol;
+end
+
+function findCloudCenter(obj, channelIdx)
+% Find centers of point clouds
+opts = statset('UseParallel', obj.useParallel);
+symbol = obj.channelArray(channelIdx).rxSymbolMatched;
+symbol = [real(symbol), imag(symbol)];
+[~, center] = kmeans(symbol, ...
+    obj.channelArray(channelIdx).constellationSize, ...
+    'Display', 'off', 'maxiter', 1000, ...
+    'Replicates', 16, 'Options', opts);
+obj.channelArray(channelIdx).rxCloudCenter = center(:, 1)+1i*center(:, 2);
+end
+
+function matchConstellation(obj, channelIdx)
+% match received and transmitted
+tx = obj.channelArray(channelIdx).txSymbolMatched;
+rx = obj.channelArray(channelIdx).rxSymbolMatched;
+
+% Objective function to minimize for each pair of tx and rx points
+% objfcn = @(x) x(1)+x(2)*rx - tx;
+% x0 = (1+1i)*[1;1]; % arbitrary initial guess
+rxV = zeros(length(rx), 2);
+rxV(:, 1) = real(rx);
+rxV(:, 2) = imag(rx);
+txV = zeros(length(tx), 2);
+txV(:, 1) = real(tx);
+txV(:, 2) = imag(tx);
+
+objfcn = @(x) sum((rxV(:, 1)*x(1) - rxV(:, 2)*x(2) - txV(:, 1)).^2 + ...
+    (rxV(:, 2)*x(1) + rxV(:, 1)*x(2) - txV(:, 2)).^2);
+x0 = [1; 1];
+% Optimize nonlinear least-squares problem
+opts = optimoptions(@fminunc,'Display', 'off', ...
+'UseParallel', obj.useParallel, 'MaxFunctionEvaluations', 1e4);
+
+% Solution 
+[xSol,fval,exitflag,output] = fminunc(objfcn,x0,opts);
+xSol = xSol(1)+1i*xSol(2);
+% 
+% obj.channelArray(channelIdx).rxSymbolRotated = xSol(1) + xSol(2)*rx;
+obj.channelArray(channelIdx).rxSymbolRotated = xSol*rx;
+end
+
+function computeEVM(obj, channelIdx)
+
+powerVector = abs(obj.channelArray(channelIdx).txSymbolMatched).^2;
+errorVector = abs(obj.channelArray(channelIdx).txSymbolMatched-...
+    obj.channelArray(channelIdx).rxSymbolRotated).^2;
+obj.channelArray(channelIdx).EVM = ...
+    sqrt(mean(errorVector)/mean(powerVector));
+end
+
+function computeSER(obj, channelIdx)
+
+tx = obj.channelArray(channelIdx).txSymbolMatched;
+% Constellation points of transmitted symbols
+txUnique = unique(tx);
+% Constellation points of received symbols
+rx = obj.channelArray(channelIdx).rxSymbolRotated;
+% Distances between received symbol to all transmitted symbols
+dist = abs(rx-txUnique.');
+% For each received symbol, calculate its distance to the closes
+% transmitted symbol
+[minDist, ~] = min(dist, [], 2);
+% For each received symbol, calculate its distance to its corresponding
+% transmitted symbol
+txDist = abs(rx-tx);
+% Decode a symbol to its nearest transmitted symbol, and calculate the
+% corresponding SER
+obj.channelArray(channelIdx).SER = sum(minDist<txDist)/length(txDist);
+end
+
+function computeSNR(obj, channelIdx)
+rx = obj.channelArray(channelIdx).rxSymbolRotated;
+tx = obj.channelArray(channelIdx).txSymbolMatched;
+txUnique = unique(tx);
+
+powerSignal = 0;
+powerNoise = 0;
+% Iterate over all unique transmitted symbols
+for n=1:length(txUnique)
+    tmpSignal = rx(tx==txUnique(n));
+    tmpRatio = length(tmpSignal)/length(rx);
+    powerSignal = powerSignal + abs(mean(tmpSignal))^2*tmpRatio;
+    powerNoise = powerNoise + abs(std(tmpSignal))^2*tmpRatio;
+end
+obj.channelArray(channelIdx).SNR = powerSignal/powerNoise;
+obj.channelArray(channelIdx).SNRdB = ...
+    10*log10(obj.channelArray(channelIdx).SNR);
 end
