@@ -85,7 +85,6 @@ classdef SinglePolarization < handle
             addParameter(p, 'simulationId', 0, @isnumeric);
             addParameter(p, 'randomSeed', 0, @isnumeric);
             addParameter(p, 'resultFolder', 'results/', @ischar);
-            addParameter(p, 'logFile', '', @ischar);
             addParameter(p, 'linkArray', Link(), @(x) isa(x, 'Link'));
             addParameter(p, 'channelArray', Channel(), @(x) isa(x, 'Channel'));
             addParameter(p, 'useParallel', true, @islogical);
@@ -123,8 +122,9 @@ classdef SinglePolarization < handle
             if obj.logFid == -1
                 warning('Could not open log file');
             else
-                fprintf(obj.logFid, 'Simulation Name, Simulation id\n');
-                fprintf(obj.logFid, '%s, %d\n', obj.simulationName, obj.simulationId);
+%                 fprintf(obj.logFid, 'Simulation Name, Simulation id\n');
+                fprintf(obj.logFid, '%s, %d, %s\n', obj.simulationName, ...
+                    obj.simulationId, datestr(now()));
             end
             
             %% Calculate fmax
