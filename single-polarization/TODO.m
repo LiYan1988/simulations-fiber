@@ -6,6 +6,8 @@
 % 3. Use optimization toolbox in Synchronize to find the optimal sampling
 % offset
 % 4. What to write in log file?
+% 5. Predefine simulation scenarios to make simulation more convenient.
+% Or write functions to fast configure simulations.
 
 % Steps:
 % 1. Configure basic/general parameters
