@@ -59,7 +59,7 @@ classdef Link < matlab.mixin.Copyable
             addParameter(p, 'S', -21.93548387096774, @isnumeric);
             addParameter(p, 'alphadB', 2e-4, @isnumeric);
             addParameter(p, 'gamma', 1.4e-3, @isnumeric);
-            addParameter(p, 'NFdB', 5.563, @isnumeric);
+            addParameter(p, 'NFdB', 4, @isnumeric);
             addParameter(p, 'DCFLength', 82e3, @isnumeric);
             addParameter(p, 'numberSteps', 100, @isnumeric);
             
