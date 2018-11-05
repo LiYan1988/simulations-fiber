@@ -90,8 +90,8 @@ figure;
 hold on;
 grid on;
 box on;
-plot(power_dbm_qam, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
-% plot(power_dbm_qam, 10*log10(1./snr), 'o', 'linewidth', 2, 'displayname', '1/SNR')
+%plot(power_dbm_qam, 10*log10(evm), 'o', 'linewidth', 2, 'displayname', 'EVM')
+plot(power_dbm_qam, 10*log10(snr), 'o', 'linewidth', 2, 'displayname', 'SNR')
 xlabel('Power (dBm)')
 ylabel('EVM (dB)')
 legend()

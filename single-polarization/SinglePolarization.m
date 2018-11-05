@@ -253,7 +253,7 @@ function [tmax, actualNumberSymbol] = computeTotalTime(obj)
 %   actualNumberSymbol: actual number of symbols when tmax is computed
 
 % Symbol time [fs], convert to fs so that all symbol times are integer
-symbolTime = 1e15./[obj.channelArray.symbolRate];
+symbolTime = round(1e15./[obj.channelArray.symbolRate]);
 minNumberSymbol = [obj.channelArray.minNumberSymbol];
 
 % Compute the least common multiple of all symbol times
