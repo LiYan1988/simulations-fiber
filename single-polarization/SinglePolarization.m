@@ -144,7 +144,17 @@ classdef SinglePolarization < handle
             end
             
             %% Create spectrum and time axis
-            obj.N = ceil(4*obj.tmax*obj.fmax);
+            obj.N = round(4*obj.tmax*obj.fmax); 
+            % When channel bandwidths are very strange, i.e., their symbol
+            % times are not a proper number, it is hard to find a time span
+            % that can makes the number symbols exactly integers for all
+            % the channels. In this case, the simulation results can be
+            % wrong. So we need to adjust the input parameters.
+            % E.g., when the bandwidth is 29.99999999 GHz, we can instead
+            % make it 28 or 32 GHz.
+            assert (obj.N==mean([obj.channelArray.actualNumberSymbol].*...
+                [obj.channelArray.actualSamplePerSymbol]), ...
+                'Channel bandwidths not compatible')
             
             obj.domega = 4*pi*obj.fmax/obj.N;
             obj.omega = (-obj.N/2:obj.N/2-1).'*obj.domega;
@@ -252,8 +262,9 @@ function [tmax, actualNumberSymbol] = computeTotalTime(obj)
 %       total time span is 2*tmax
 %   actualNumberSymbol: actual number of symbols when tmax is computed
 
+bigNumber = 1e24;
 % Symbol time [fs], convert to fs so that all symbol times are integer
-symbolTime = round(1e15./[obj.channelArray.symbolRate]);
+symbolTime = ceil(bigNumber./[obj.channelArray.symbolRate]);
 minNumberSymbol = [obj.channelArray.minNumberSymbol];
 
 % Compute the least common multiple of all symbol times
@@ -276,7 +287,7 @@ end
 actualNumberSymbol = ceil(totalTime./symbolTime);
 
 % Compute tmax [s], convert back to second
-tmax = totalTime/2/1e15;
+tmax = totalTime/2/bigNumber;
 end
 
 function generateOOK(obj, channelIdx)
