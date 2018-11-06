@@ -1,4 +1,4 @@
-classdef SinglePolarization < handle
+classdef SinglePolarization < matlab.mixin.Copyable
     %Single polarization simulation of hybrid channels
     %   Detailed explanation goes here
     
@@ -68,7 +68,7 @@ classdef SinglePolarization < handle
     end
     
     %% Dependent parameters
-    properties (Dependent)
+    properties (Dependent, SetAccess=private)
         numberLink
         numberChannel
     end
@@ -204,6 +204,22 @@ classdef SinglePolarization < handle
             end
         end
     end
+    
+    methods (Access=protected)
+        function newObj = copyElement(obj)
+            % Copy Link object
+            newObj = SinglePolarization();
+            mc = ?SinglePolarization;
+            for n = 1:length(mc.PropertyList)
+                % Dependent and Constant properties cannot be copied
+                if (mc.PropertyList(n).Dependent==0) && (mc.PropertyList(n).Constant==0)
+                    propertyName = mc.PropertyList(n).Name;
+                    newObj.(propertyName) = obj.(propertyName);
+                end
+            end
+        end
+    end
+    
 end
 
 %% Helper Functions for Class Methods
@@ -650,4 +666,44 @@ end
 obj.channelArray(channelIdx).SNR = powerSignal/powerNoise;
 obj.channelArray(channelIdx).SNRdB = ...
     10*log10(obj.channelArray(channelIdx).SNR);
+end
+
+function synchronize2(obj, channelIdx)
+% Find the optimal place to sample the signal
+
+channel = obj.channelArray(channelIdx);
+% Copy received signal
+rxSignal = channel.rxTime;
+% Real and imaginary parts of the signal
+signal = zeros(size(rxSignal, 1), 2);
+signal(:, 1) = real(rxSignal);
+signal(:, 2) = imag(rxSignal);
+
+objfcn = @(x) -synchronizeObj(obj, channel, signal, x);
+
+% Down sample received signal at the optimal offset
+signal = downsample(signal, channel.actualSamplePerSymbol, ...
+    channel.rxOptimalOffset-1);
+channel.rxSymbol = signal(:, 1)+1i*signal(:, 2);
+end
+
+function q2 = synchronizeObj(obj, channel, signal, x)
+
+    if (x<0) || (x>channel.actualSamplePerSymbol)
+        q2 = -1;
+        return
+    end
+
+    tmpSignal = downsample(signal, channel.actualSamplePerSymbol, round(x));
+    % Instruct kmeans to use parallel threads
+    opts = statset('UseParallel', obj.useParallel);
+    [~, tmpCenters, tmpDistances] = ...
+        kmeans(tmpSignal, channel.constellationSize, ...
+        'Display', 'off', 'maxiter', 1000, ...
+        'Replicates', 4, 'Options', opts);
+    
+    tmpSignalPower = tmpCenters(:, 1)+1i*tmpCenters(:, 2);
+    tmpSignalPower = abs(tmpSignalPower-tmpSignalPower.'); 
+    tmpq = tmpSignalPower./(tmpDistances+tmpDistances.');
+    q2(nn) = mean(tmpq(:));
 end

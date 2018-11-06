@@ -75,7 +75,7 @@ classdef Channel < matlab.mixin.Copyable
         % See: https://eprints.soton.ac.uk/263112/1/paper_101.pdf
     end
     
-    properties (Dependent)
+    properties (Dependent, SetAccess=private)
         constellationSize % number of points in the constellation diagram
         bitPerSymbol % bits per symbol
     end
@@ -140,4 +140,20 @@ classdef Channel < matlab.mixin.Copyable
             end
         end
     end
+    
+    methods (Access=protected)
+        function newObj = copyElement(obj)
+            % Copy Link object
+            newObj = Channel();
+            mc = ?Channel;
+            for n = 1:length(mc.PropertyList)
+                % Dependent and Constant properties cannot be copied
+                if (mc.PropertyList(n).Dependent==0) && (mc.PropertyList(n).Constant==0)
+                    propertyName = mc.PropertyList(n).Name;
+                    newObj.(propertyName) = obj.(propertyName);
+                end
+            end
+        end
+    end
+    
 end
