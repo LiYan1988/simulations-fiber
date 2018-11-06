@@ -12,7 +12,8 @@
 % * Use optimization toolbox in Synchronize to find the optimal sampling
 % offset
 %
-%       Not necessary, kmeans 
+%       Not necessary, optimization works even worse and takes more 
+%      function evaluations.
 
 %% Things to try
 % # Define functions to plot constellation diagram, eye diagram, SNR/BER

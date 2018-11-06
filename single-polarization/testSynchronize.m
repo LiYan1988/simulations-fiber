@@ -43,7 +43,8 @@ channel = obj.channelArray(1);
 signal = channel.rxTime;
 signal = [real(signal), imag(signal)];
 
-q2 = synchronizeObj(obj, channel, signal, 0);
+% q2 = synchronizeObj(obj, channel, signal, 0);
+synchronize2(obj, channelIdx)
 
 %%
 function synchronize2(obj, channelIdx)
@@ -59,7 +60,11 @@ signal(:, 2) = imag(rxSignal);
 
 objfcn = @(x) -synchronizeObj(obj, channel, signal, x);
 
-[xOpt,fval,exitflag,output,trials] = surrogateopt(___) 
+lb = 0;
+ub = channel.actualSamplePerSymbol;
+options = optimoptions('patternsearch','Display','iter');
+[xOpt,fval,exitflag,output] = patternsearch(objfcn, ub/2, [], [], ...
+    [], [], lb, ub, [], options); 
 
 channel.rxOptimalOffset
 
