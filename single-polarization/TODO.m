@@ -16,8 +16,14 @@
 %      function evaluations.
 
 %% Things to try
-% # Define functions to plot constellation diagram, eye diagram, SNR/BER
+% * Define functions to plot constellation diagram, eye diagram, SNR/BER
 % figures, etc.
-% # What to write in log file? Close log file after simulation. 
-% # Predefine simulation scenarios to make simulation more convenient.
+%
+%  Done
+%
+% * What to write in log file? Close log file after simulation. 
+%
+%  Not too much
+%
+% * Predefine simulation scenarios to make simulation more convenient.
 % Or write functions to fast configure simulations.

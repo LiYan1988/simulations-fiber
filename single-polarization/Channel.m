@@ -56,9 +56,11 @@ classdef Channel < matlab.mixin.Copyable
         % The matched received symbols
         rxSymbolMatched
         % centers of point clouds in the received constellation diagram
-        rxCloudCenter
+        rxCloudCenterMatched
         % The roated received symbols
         rxSymbolRotated
+        % center rotated
+        rxCloudCenterRotated
         
         % SNR is based on Jochen's Python code. It also requires reference
         % signal. For each unique transmitted symbol, it computes the mean

@@ -122,7 +122,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             if obj.logFid == -1
                 warning('Could not open log file');
             else
-%                 fprintf(obj.logFid, 'Simulation Name, Simulation id\n');
+                %                 fprintf(obj.logFid, 'Simulation Name, Simulation id\n');
                 fprintf(obj.logFid, '%s, %d, %s\n', obj.simulationName, ...
                     obj.simulationId, datestr(now()));
             end
@@ -144,7 +144,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
             
             %% Create spectrum and time axis
-            obj.N = round(4*obj.tmax*obj.fmax); 
+            obj.N = round(4*obj.tmax*obj.fmax);
             % When channel bandwidths are very strange, i.e., their symbol
             % times are not a proper number, it is hard to find a time span
             % that can makes the number symbols exactly integers for all
@@ -182,6 +182,65 @@ classdef SinglePolarization < matlab.mixin.Copyable
             numberChannel = length(obj.channelArray);
         end
         
+        function [varargout] = plotSpectrum(obj, signalType, figureHandle)
+            % Plot spectrum,
+            % signalType: 'tx' for transmitted signal, 'current' for
+            % current signal
+            % figureHandle: figure handle or positive integer number
+            % If there is an output, it is the figure handle.
+            
+            h = figure(figureHandle);
+            hold on;
+            grid on;
+            box on;
+            
+            if strcmp(signalType, 'tx')
+                plot(obj.omega/2/pi, 10*log10(abs(obj.txSignalSpectrum).^2*1e12))
+            else
+                plot(obj.omega/2/pi, 10*log10(abs(obj.currentSignalSpectrum).^2*1e12))
+            end
+            
+            if nargout==1
+                varargout{1} = h;
+            end
+        end
+        
+        function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType, figureHandle)
+            h = plot(figureHandle);
+            if strcmp(signalType, 'tx')
+                plot(rem(obj.t, ...
+                    obj.channelArray(channelIdx).actualSamplePerSymbol*...
+                    obj.dt*numberPeriod/2), ...
+                    real(obj.channelArray(channelIdx).txTime), '.', ...
+                    'markersize', 3)
+            else
+                plot(rem(obj.t, ...
+                    obj.channelArray(channelIdx).actualSamplePerSymbol*...
+                    obj.dt*numberPeriod/2), ...
+                    imag(obj.channelArray(channelIdx).rxTime), '.', ...
+                    'markersize', 3)
+            end
+            
+            if nargout==1
+                varargout = {h};
+            end
+        end
+        
+        function plotConstellation(obj, channelIdx, signalType, figureHandle)
+            h = figure(figureHandle);
+            if strcmp(signalType, 'matched')
+                plot(obj.channelArray(channelIdx).rxSymbolMatched, '.')
+                hold on;
+                plot(obj.channelArray(channelIdx).rxCloudCenterMatched, 'x', 'markersize', 12, 'linewidth', 2)
+            elseif strcmp(signalType, 'rotated')
+                plot(obj.channelArray(channelIdx).rxSymbolRotated, '.')
+                hold on;
+                plot(obj.channelArray(channelIdx).rxCloudCenterRotated, 'x', 'markersize', 12, 'linewidth', 2)
+            end
+            if nargout==1
+                varargout = {h};
+            end
+        end
         %% Simulate transmission and Receiver
         function simulate(obj)
             %% Transmission
@@ -202,6 +261,8 @@ classdef SinglePolarization < matlab.mixin.Copyable
                 computeSNR(obj, n);
                 computeEVM(obj, n);
             end
+            
+            fclose(obj.logFid)
         end
     end
     
@@ -587,7 +648,7 @@ symbol = [real(symbol), imag(symbol)];
     obj.channelArray(channelIdx).constellationSize, ...
     'Display', 'off', 'maxiter', 1000, ...
     'Replicates', 4, 'Options', opts);
-obj.channelArray(channelIdx).rxCloudCenter = center(:, 1)+1i*center(:, 2);
+obj.channelArray(channelIdx).rxCloudCenterMatched = center(:, 1)+1i*center(:, 2);
 end
 
 function matchConstellation(obj, channelIdx)
@@ -610,14 +671,15 @@ objfcn = @(x) sum((rxV(:, 1)*x(1) - rxV(:, 2)*x(2) - txV(:, 1)).^2 + ...
 x0 = [1; 1];
 % Optimize nonlinear least-squares problem
 opts = optimoptions(@fminunc,'Display', 'off', ...
-'UseParallel', obj.useParallel, 'MaxFunctionEvaluations', 1e4);
+    'UseParallel', obj.useParallel, 'MaxFunctionEvaluations', 1e4);
 
-% Solution 
+% Solution
 [xSol,fval,exitflag,output] = fminunc(objfcn,x0,opts);
 xSol = xSol(1)+1i*xSol(2);
-% 
+%
 % obj.channelArray(channelIdx).rxSymbolRotated = xSol(1) + xSol(2)*rx;
 obj.channelArray(channelIdx).rxSymbolRotated = xSol*rx;
+obj.channelArray(channelIdx).rxCloudCenterRotated = xSol*obj.channelArray(channelIdx).rxCloudCenterMatched;
 end
 
 function computeEVM(obj, channelIdx)
