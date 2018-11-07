@@ -13,12 +13,13 @@ module load matlab
 cp  -r $SLURM_SUBMIT_DIR/* $TMPDIR
 cd $TMPDIR
 
-
-for coreInd in {1..16}
+array=( "one;1" "two;2" "three;3" )
+for i in "${array[@]}"
 do
-RunMatlab.sh -o "-nodesktop -nosplash -singleCompThread -r \"simulateSingleQAM($coreInd,32e9,2);\"" & 
-
-sleep 0.1
+    arr=(${i//;/ })
+    echo ${arr[0]} ${arr[1]}
+    RunMatlab.sh -o "-nodesktop -nosplash -singleCompThread -r \"simulateSingleQAM(${arr[0]},${arr[1]});\"" & 
+    sleep 0.1
 done
 
 wait
