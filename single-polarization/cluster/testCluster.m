@@ -1,4 +1,10 @@
 %% Simulation of OOK-16QAM-OOK
+% Variables: 
+% power: -20:1:10
+% channel spacing: [50, 100, 150, 200] GHz
+% OOK symbol rate: 10 GHz
+% 16QAM symbol rate: 32 and 64 GHz
+
 clc;
 clear;
 close all;
