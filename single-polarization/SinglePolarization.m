@@ -206,6 +206,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
         end
         
         function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType, figureHandle)
+            % Plot the real part of the signal
             h = plot(figureHandle);
             if strcmp(signalType, 'tx')
                 plot(rem(obj.t, ...
@@ -217,7 +218,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
                 plot(rem(obj.t, ...
                     obj.channelArray(channelIdx).actualSamplePerSymbol*...
                     obj.dt*numberPeriod/2), ...
-                    imag(obj.channelArray(channelIdx).rxTime), '.', ...
+                    real(obj.channelArray(channelIdx).rxTime), '.', ...
                     'markersize', 3)
             end
             
@@ -262,7 +263,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
                 computeEVM(obj, n);
             end
             
-            fclose(obj.logFid)
+            fclose(obj.logFid);
         end
     end
     
@@ -671,7 +672,8 @@ objfcn = @(x) sum((rxV(:, 1)*x(1) - rxV(:, 2)*x(2) - txV(:, 1)).^2 + ...
 x0 = [1; 1];
 % Optimize nonlinear least-squares problem
 opts = optimoptions(@fminunc,'Display', 'off', ...
-    'UseParallel', obj.useParallel, 'MaxFunctionEvaluations', 1e4);
+    'UseParallel', obj.useParallel, 'MaxFunctionEvaluations', 1e4, ...
+    'Algorithm', 'quasi-newton');
 
 % Solution
 [xSol,fval,exitflag,output] = fminunc(objfcn,x0,opts);

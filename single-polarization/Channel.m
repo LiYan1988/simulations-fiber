@@ -100,7 +100,7 @@ classdef Channel < matlab.mixin.Copyable
             addParameter(p, 'powerdBm', 0, @isnumeric);
             
             % Filter parameters
-            addParameter(p, 'firFactor', 0.7, @isnumeric);
+            addParameter(p, 'firFactor', 1, @isnumeric);
             addParameter(p, 'symbolInFir', 10, @isnumeric);
             
             % Simulation parameters
