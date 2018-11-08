@@ -41,6 +41,7 @@ variableArray = {};
 for n = 1:size(tmp, 1)
     variableArray{n} = strcat(tmp{n, :});
 end
+
 %% Prepare bash files
 for n = 1:size(powerArray, 1)
 %     copyfile(fullfile(pwd, 'simulateSingleQAM.sh'), ...
