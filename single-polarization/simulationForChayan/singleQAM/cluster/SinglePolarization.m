@@ -311,11 +311,11 @@ classdef SinglePolarization < matlab.mixin.Copyable
             symbol.modulation = [obj.channelArray.modulation];
             symbol.centerFrequency = [obj.channelArray.centerFrequency];
             symbol.powerdBm = [obj.channelArray.powerdBm];
-            symbol.rxSymbolMatched = {obj.channelArray.rxSymbolMatched};
-            symbol.rxSymbolRotated = {obj.channelArray.rxSymbolRotated};
-            symbol.rxCloudCenterRotated = {obj.channelArray.rxCloudCenterRotated};
-            symbol.rxCloudCenterMatched = {obj.channelArray.rxCloudCenterMatched};
-            symbol.txSymbolMatched = {obj.channelArray.txSymbolMatched};
+            symbol.rxSymbolMatched = [obj.channelArray.rxSymbolMatched];
+            symbol.rxSymbolRotated = [obj.channelArray.rxSymbolRotated];
+            symbol.rxCloudCenterRotated = [obj.channelArray.rxCloudCenterRotated];
+            symbol.rxCloudCenterMatched = [obj.channelArray.rxCloudCenterMatched];
+            symbol.txSymbolMatched = [obj.channelArray.txSymbolMatched];
             symbol.runningTime = obj.runningTime;
             
             % Overall signals
