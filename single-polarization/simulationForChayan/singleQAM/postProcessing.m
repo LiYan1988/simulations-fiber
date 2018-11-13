@@ -1,4 +1,7 @@
 %% Information retrieval from simulation results
+% In Glenn command line, use 
+% zip -r resultsLevel1.zip . -i *_resultsLevel1.mat
+% to collect results
 clc;
 close all;
 clear;

@@ -75,7 +75,7 @@ A{7} = sprintf('#SBATCH -o %s.stdout', jobName);
 A{8} = sprintf('#SBATCH -e %s.stderr', jobName);
 A{16} = sprintf('array=( %s )', variableArray);
 A{27} = sprintf('mkdir $SLURM_SUBMIT_DIR/%s', jobName);
-A{28} = sprintf('cp -rf $TMPDIR/* $SLURM_SUBMIT_DIR/%s', jobName);
+A{28} = sprintf('cp -rf $TMPDIR/result/* $SLURM_SUBMIT_DIR/%s', jobName);
 
 fid = fopen(fileNameDst, 'w');
 for i = 1:numel(A)

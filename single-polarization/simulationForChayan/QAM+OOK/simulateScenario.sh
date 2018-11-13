@@ -25,7 +25,7 @@ done
 wait
 
 mkdir $SLURM_SUBMIT_DIR/run
-cp -rf $TMPDIR/* $SLURM_SUBMIT_DIR/run
+cp -rf $TMPDIR/results/* $SLURM_SUBMIT_DIR/run
 rm -rf $TMPDIR/*
 
 #End of script

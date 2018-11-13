@@ -25,7 +25,7 @@ done
 wait
 
 mkdir $SLURM_SUBMIT_DIR/simulateScenario97
-cp -rf $TMPDIR/* $SLURM_SUBMIT_DIR/simulateScenario97
+cp -rf $TMPDIR/results/* $SLURM_SUBMIT_DIR/simulateScenario97
 rm -rf $TMPDIR/*
 
 #End of script
