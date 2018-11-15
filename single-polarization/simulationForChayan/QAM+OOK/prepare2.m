@@ -4,7 +4,7 @@ close all;
 clear;
 
 %%
-folderName = fullfile(pwd, 'cluster');
+folderName = fullfile(pwd, 'cluster2');
 if ~exist(folderName, 'dir')
     mkdir(folderName)
 end
@@ -22,7 +22,7 @@ cpuPerNode = 16;
 powerQAM = -10:1:10;
 powerOOK = -10:1:10;
 symbolRate = [32e9, 64e9];
-channelSpacing = [50e9, 100e9, 150e9, 200e9];
+channelSpacing = [30e9];
 powerQAMArray = {};
 powerOOKArray = {};
 symbolRateArray = {};
