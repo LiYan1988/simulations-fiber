@@ -22,7 +22,7 @@ cpuPerNode = 16;
 powerQAM = -10:1:10;
 powerOOK = -10:1:10;
 symbolRate = [32e9, 64e9];
-channelSpacing = [50e9, 100e9, 150e9, 200e9];
+channelSpacing = [30e9, 50e9, 100e9, 150e9, 200e9];
 powerQAMArray = {};
 powerOOKArray = {};
 symbolRateArray = {};
@@ -57,7 +57,7 @@ for n = 1:length(variableArray)
         fullfile(pwd, 'simulateScenario.sh'), ...
         fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
         sprintf('simulateScenario%d', n), ...
-        [0, 2, 0, 0], ...
+        [0, 10, 0, 0], ...
         variableArray{n});
 end
 

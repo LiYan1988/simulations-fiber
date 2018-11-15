@@ -1,0 +1,3 @@
+/apps/Common/Core/MATLAB/2017b/bin/matlab-glselector.sh: line 26: 29533 Aborted                 (core dumped) $MATLAB/bin/$ARCH/need_softwareopengl $display -v > "$need_softwareopengl_log" 2>&1
+/apps/Common/Core/MATLAB/2017b/bin/matlab-glselector.sh: line 26: 29580 Aborted                 (core dumped) $MATLAB/bin/$ARCH/need_softwareopengl $display -v > "$need_softwareopengl_log" 2>&1
+slurmstepd: error: *** JOB 1354191 ON glenn71-4 CANCELLED AT 2018-11-08T20:14:34 DUE TO TIME LIMIT ***

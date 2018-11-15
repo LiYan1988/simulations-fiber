@@ -1,0 +1,1 @@
+/apps/Common/Core/MATLAB/2017b/bin/matlab-glselector.sh: line 26:  7287 Aborted                 (core dumped) $MATLAB/bin/$ARCH/need_softwareopengl $display -v > "$need_softwareopengl_log" 2>&1
