@@ -293,10 +293,16 @@ classdef SinglePolarization < matlab.mixin.Copyable
             % Save figures including:
             %   constellation, eye, spectrum, and time domain
             
+            modulationCell = cell(length(obj.channelArray), 1);
+            for n=1:length(modulationCell)
+                modulationCell{n} = obj.channelArray(n).modulation;
+            end
+            modulationStr = strjoin(modulationCell, '+');
+            
             % Save results
             result = struct();
             result.symbolRate = [obj.channelArray.symbolRate];
-            result.modulation = [obj.channelArray.modulation];
+            result.modulation = modulationStr;%[obj.channelArray.modulation];
             result.centerFrequency = [obj.channelArray.centerFrequency];
             result.powerdBm = [obj.channelArray.powerdBm];
             result.SNR = [obj.channelArray.SNR];
@@ -308,7 +314,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             % More detailed channel symbols
             symbol = struct();
             symbol.symbolRate = [obj.channelArray.symbolRate];
-            symbol.modulation = [obj.channelArray.modulation];
+            symbol.modulation = modulationStr;%[obj.channelArray.modulation];
             symbol.centerFrequency = [obj.channelArray.centerFrequency];
             symbol.powerdBm = [obj.channelArray.powerdBm];
             symbol.rxSymbolMatched = {obj.channelArray.rxSymbolMatched};
@@ -321,7 +327,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             % Overall signals
             signal = struct();
             signal.symbolRate = [obj.channelArray.symbolRate];
-            signal.modulation = [obj.channelArray.modulation];
+            signal.modulation = modulationStr;%[obj.channelArray.modulation];
             signal.centerFrequency = [obj.channelArray.centerFrequency];
             signal.powerdBm = [obj.channelArray.powerdBm];
             signal.omega = obj.omega;

@@ -27,6 +27,7 @@ powerQAMArray = {};
 powerOOKArray = {};
 symbolRateArray = {};
 channelSpacingArray = {};
+wallTime = [0, 10, 0, 0];
 
 parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
 
@@ -57,7 +58,7 @@ for n = 1:length(variableArray)
         fullfile(pwd, 'simulateScenario.sh'), ...
         fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
         sprintf('simulateScenario%d', n), ...
-        [0, 10, 0, 0], ...
+        wallTime, ...
         variableArray{n});
 end
 
