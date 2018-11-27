@@ -40,7 +40,7 @@ end
 
 %%
 simulationName = sprintf('PQAM_%d_POOK_%d_symbolRate_%d_channelSpacing_%d', ...
-    powerQAM, symbolRate/1e9, channelSpacing/1e9);
+    powerQAM, powerOOK, symbolRate/1e9, channelSpacing/1e9);
 
 sp = SinglePolarization(...
     'simulationName', simulationName, ...
@@ -49,6 +49,6 @@ sp = SinglePolarization(...
     'channelArray', channelArray, ...
     'useParallel', false);
 sp.simulate();
-sp.saveSimulationResult();
+sp.saveSimulationResult(true, false, false);
 
 end

@@ -29,6 +29,13 @@ classdef Channel < matlab.mixin.Copyable
         actualSamplePerSymbol % actual sample per symbol in simulation
         minNumberSymbol % minimum number of symbols, can be higher
         actualNumberSymbol % actual number of symbols in simulation
+        generatedNumberSymbol % generated number of symbols
+        % Note, actualNumberSymbol may be a fractional number like 2014.5
+        % whereas generatedNumberSymbol is an integer number no less than
+        % actualNumberSymbol like 2015. This is because sometimes the total
+        % time window cannot contain exactly integer number of symbols for
+        % all the channels simultaneously, e.g., if symbol rates of
+        % channels are 10, 30, 10, 30, 10 [GBaud].
         
         % Transmitted signals
         txBit % bit sequence

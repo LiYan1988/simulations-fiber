@@ -144,24 +144,14 @@ classdef SinglePolarization < matlab.mixin.Copyable
             
             %% Calculate tmax
             % The time axis ranges from -tmax to tmax
-            [obj.tmax, actualNumberSymbol] = computeTotalTime(obj);
+            [obj.tmax, generatedNumberSymbol] = computeTotalTime(obj);
             for n=1:obj.numberChannel
-                obj.channelArray(n).actualNumberSymbol = ...
-                    actualNumberSymbol(n);
+                obj.channelArray(n).generatedNumberSymbol = ...
+                    generatedNumberSymbol(n);
             end
             
             %% Create spectrum and time axis
             obj.N = round(4*obj.tmax*obj.fmax);
-            % When channel bandwidths are very strange, i.e., their symbol
-            % times are not a proper number, it is hard to find a time span
-            % that can makes the number symbols exactly integers for all
-            % the channels. In this case, the simulation results can be
-            % wrong. So we need to adjust the input parameters.
-            % E.g., when the bandwidth is 29.99999999 GHz, we can instead
-            % make it 28 or 32 GHz.
-            assert (obj.N==mean([obj.channelArray.actualNumberSymbol].*...
-                [obj.channelArray.actualSamplePerSymbol]), ...
-                'Channel bandwidths not compatible')
             
             obj.domega = 4*pi*obj.fmax/obj.N;
             obj.omega = (-obj.N/2:obj.N/2-1).'*obj.domega;
@@ -429,7 +419,44 @@ actualSamplePerSymbol = totalSpectrum./symbolRate;
 fmax = totalSpectrum/2;
 end
 
-function [tmax, actualNumberSymbol] = computeTotalTime(obj)
+% function [tmax, actualNumberSymbol] = computeTotalTime(obj)
+% % Compute the total time span for simulation
+% % Inputs:
+% %   obj: SinglePolarization object
+% % Outputs:
+% %   tmax: the single side time span of the simulation, the overall
+% %       total time span is 2*tmax
+% %   actualNumberSymbol: actual number of symbols when tmax is computed
+% 
+% bigNumber = 1e24;
+% % Symbol time [fs], convert to fs so that all symbol times are integer
+% symbolTime = ceil(bigNumber./[obj.channelArray.symbolRate]);
+% minNumberSymbol = [obj.channelArray.minNumberSymbol];
+% 
+% % Compute the least common multiple of all symbol times
+% totalTime = 1;
+% for n=1:length(symbolTime)
+%     totalTime = lcm(totalTime, symbolTime(n));
+% end
+% 
+% % Check if the total symbol time is greater than the minimum
+% % for all the channels. If not, multiply with 2 untile it satisfies all
+% % the requirements.
+% for n=1:length(minNumberSymbol)
+%     while totalTime/symbolTime(n)<minNumberSymbol(n)
+%         totalTime = 2*totalTime;
+%     end
+% end
+% % totalTime = totalTime*1.1;
+% 
+% % Compute actual number of symbols for every channel
+% actualNumberSymbol = ceil(totalTime./symbolTime);
+% 
+% % Compute tmax [s], convert back to second
+% tmax = totalTime/2/bigNumber;
+% end
+
+function [tmax, generatedNumberSymbol] = computeTotalTime(obj)
 % Compute the total time span for simulation
 % Inputs:
 %   obj: SinglePolarization object
@@ -437,33 +464,21 @@ function [tmax, actualNumberSymbol] = computeTotalTime(obj)
 %   tmax: the single side time span of the simulation, the overall
 %       total time span is 2*tmax
 %   actualNumberSymbol: actual number of symbols when tmax is computed
+% 
+% Note: for some channel bandwidths, the whole time time window
+% may contain fractions of symbols, e.g., 1024.5 symbols. In this
+% case, first generate 1025 symbols, then cut the extra samples off.
 
-bigNumber = 1e24;
-% Symbol time [fs], convert to fs so that all symbol times are integer
-symbolTime = ceil(bigNumber./[obj.channelArray.symbolRate]);
+% Symbol time [s]
+symbolTime = 1./[obj.channelArray.symbolRate];
 minNumberSymbol = [obj.channelArray.minNumberSymbol];
+twin = max(symbolTime.*minNumberSymbol);
 
-% Compute the least common multiple of all symbol times
-totalTime = 1;
-for n=1:length(symbolTime)
-    totalTime = lcm(totalTime, symbolTime(n));
-end
-
-% Check if the total symbol time is greater than the minimum
-% for all the channels. If not, multiply with 2 untile it satisfies all
-% the requirements.
-for n=1:length(minNumberSymbol)
-    while totalTime/symbolTime(n)<minNumberSymbol(n)
-        totalTime = 2*totalTime;
-    end
-end
-% totalTime = totalTime*1.1;
-
-% Compute actual number of symbols for every channel
-actualNumberSymbol = ceil(totalTime./symbolTime);
-
-% Compute tmax [s], convert back to second
-tmax = totalTime/2/bigNumber;
+% Compute number of symbols generated for every channel, the actual number
+% of symbols will be no greater than this number, since some samples may be
+% cut off as shown in the example above.
+generatedNumberSymbol = ceil(twin./symbolTime);
+tmax = twin/2;
 end
 
 function generateOOK(obj, channelIdx)
@@ -472,7 +487,7 @@ channel = obj.channelArray(channelIdx);
 assert (strcmp(channel.modulation, 'OOK'))
 
 % Generate bit stream
-channel.txBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+channel.txBit = randi([0, 1], channel.generatedNumberSymbol, channel.bitPerSymbol);
 % The first and last ceil(channel.symbolInFir/2) symbols are affected by
 % FIR convolution effects. Set them to 0 to eliminate this effect.
 halfFirSymbolLength = ceil(channel.symbolInFir/2);
@@ -483,7 +498,7 @@ channel.txBit(end-halfFirSymbolLength+1:end) = 0;
 channel.txSymbol = channel.txBit;
 channel.txTime = repmat(channel.txBit, 1, channel.actualSamplePerSymbol).';
 channel.txTime = channel.txTime(:);
-dataTimeLength = obj.N;
+dataSampleLength = obj.N;
 
 % Generate Gauss FIR
 channel.fir = gaussdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol);
@@ -497,8 +512,11 @@ channel.txTime = circshift(channel.txTime, channel.shiftNumberSample);
 % FIR delay in number of samples
 firOverhead = ceil((length(channel.fir)-1)/2);
 % Remove head and tail added by FIR and convolution inside upfirdn
-s = (firOverhead+1):(firOverhead+dataTimeLength);
+s = (firOverhead+1):(firOverhead+dataSampleLength);
 channel.txTime = channel.txTime(s);
+
+% Calculate the actual number of symbols
+channel.actualNumberSymbol = dataSampleLength/channel.actualSamplePerSymbol;
 end
 
 function generate16QAM(obj, channelIdx)
@@ -506,7 +524,7 @@ function generate16QAM(obj, channelIdx)
 channel = obj.channelArray(channelIdx);
 assert (strcmp(channel.modulation, '16QAM'))
 
-channel.txBit = randi([0, 1], channel.actualNumberSymbol, channel.bitPerSymbol);
+channel.txBit = randi([0, 1], channel.generatedNumberSymbol, channel.bitPerSymbol);
 % The first and last ceil(channel.symbolInFir/2) symbols are affected by
 % FIR convolution effects. Set them to 0 to eliminate this effect.
 halfFirSymbolLength = ceil(channel.symbolInFir/2);
@@ -521,7 +539,7 @@ channel.txSymbol = channel.txSymbol/sqrt(mean(abs(channel.txSymbol).^2)); %
 % Square root raised cosine FIR
 channel.fir = rcosdesign(channel.firFactor, channel.symbolInFir, channel.actualSamplePerSymbol, 'sqrt');
 % Length of txTime
-dataTimeLength = obj.N;
+dataSampleLength = obj.N;
 % Pass through FIR with upsample
 channel.txTime = upfirdn(channel.txSymbol, channel.fir, channel.actualSamplePerSymbol);
 
@@ -534,8 +552,11 @@ channel.txTime = circshift(channel.txTime, channel.shiftNumberSample);
 % ceil(((length(xin)-1)*p+length(h))/q) for yout = upfirdn(xin,h,p,q)
 % See Matlab reference of upfirdn and conv
 firOverhead = ceil((length(channel.fir)-channel.actualSamplePerSymbol)/2);
-s = (firOverhead+1):(firOverhead+dataTimeLength);
+s = (firOverhead+1):(firOverhead+dataSampleLength);
 channel.txTime = channel.txTime(s);
+
+% Calculate the actual number of symbols
+channel.actualNumberSymbol = dataSampleLength/channel.actualSamplePerSymbol;
 end
 
 function generateSignal(obj)
