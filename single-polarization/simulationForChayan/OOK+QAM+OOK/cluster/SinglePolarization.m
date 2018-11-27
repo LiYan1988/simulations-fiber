@@ -18,6 +18,8 @@ classdef SinglePolarization < matlab.mixin.Copyable
     properties (Access=public)
         % User parallel in kmeans
         useParallel
+        % Save object after simulation
+        saveObject
     end
     
     %% Regular simulation data
@@ -92,6 +94,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             addParameter(p, 'linkArray', Link(), @(x) isa(x, 'Link'));
             addParameter(p, 'channelArray', Channel(), @(x) isa(x, 'Channel'));
             addParameter(p, 'useParallel', true, @islogical);
+            addParameter(p, 'saveObject', true, @islogical);
             
             % Parse inputs
             parse(p, varargin{:});
@@ -105,6 +108,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             obj.linkArray = copy(p.Results.linkArray);
             obj.channelArray = copy(p.Results.channelArray);
             obj.useParallel = p.Results.useParallel;
+            obj.saveObject = p.Results.saveObject;
             %% Set random seed for Matlab
             rng(obj.randomSeed)
             
@@ -282,12 +286,15 @@ classdef SinglePolarization < matlab.mixin.Copyable
             fprintf(obj.logFid, '%s, simulation finishes\n', datestr(now()));
             fclose(obj.logFid);
             obj.runningTime = toc;
-            matFile = sprintf('%s%d.mat', obj.simulationName, obj.simulationId);
-            matFile = fullfile(obj.resultFolder, matFile);
-            save(matFile, 'obj');
+            
+            if obj.saveObject
+                matFile = sprintf('%s%d.mat', obj.simulationName, obj.simulationId);
+                matFile = fullfile(obj.resultFolder, matFile);
+                save(matFile, 'obj');
+            end
         end
         
-        function saveSimulationResult(obj)
+        function saveSimulationResult(obj, level1, level2, level3)
             % Save high level simulation results including:
             %   SNR, SNRdB, EVM, SER
             % Save figures including:
@@ -338,17 +345,23 @@ classdef SinglePolarization < matlab.mixin.Copyable
             signal.txSignalSpectrum = obj.txSignalSpectrum;
             signal.runningTime = obj.runningTime;
             
-            matFileLevel1 = sprintf('%s_%d_resultsLevel1.mat', obj.simulationName, obj.simulationId);
-            matFileLevel1 = fullfile(obj.resultFolder, matFileLevel1);
-            save(matFileLevel1, 'result');
+            if level1
+                matFileLevel1 = sprintf('%s_%d_resultsLevel1.mat', obj.simulationName, obj.simulationId);
+                matFileLevel1 = fullfile(obj.resultFolder, matFileLevel1);
+                save(matFileLevel1, 'result');
+            end
             
-            matFileLevel2 = sprintf('%s_%d_resultsLevel2.mat', obj.simulationName, obj.simulationId);
-            matFileLevel2 = fullfile(obj.resultFolder, matFileLevel2);
-            save(matFileLevel2, 'result', 'symbol');
+            if level2
+                matFileLevel2 = sprintf('%s_%d_resultsLevel2.mat', obj.simulationName, obj.simulationId);
+                matFileLevel2 = fullfile(obj.resultFolder, matFileLevel2);
+                save(matFileLevel2, 'result', 'symbol');
+            end
             
-            matFileLevel3 = sprintf('%s_%d_resultsLevel3.mat', obj.simulationName, obj.simulationId);
-            matFileLevel3 = fullfile(obj.resultFolder, matFileLevel3);
-            save(matFileLevel3, 'result', 'symbol', 'signal');            
+            if level3
+                matFileLevel3 = sprintf('%s_%d_resultsLevel3.mat', obj.simulationName, obj.simulationId);
+                matFileLevel3 = fullfile(obj.resultFolder, matFileLevel3);
+                save(matFileLevel3, 'result', 'symbol', 'signal');
+            end
         end
     end
     
