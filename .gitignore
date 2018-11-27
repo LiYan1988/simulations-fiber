@@ -5,3 +5,5 @@
 my/from_diego/Filter.fig
 *.asv
 single-polarization/results/*
+team/*.hdf
+team/.ipynb_checkpoints/*

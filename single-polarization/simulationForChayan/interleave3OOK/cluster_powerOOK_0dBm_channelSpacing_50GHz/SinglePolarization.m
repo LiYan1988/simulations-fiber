@@ -726,6 +726,11 @@ channel.rxOptimalOffset = q2Idx;
 signal = downsample(signal, channel.actualSamplePerSymbol, ...
     channel.rxOptimalOffset-1);
 channel.rxSymbol = signal(:, 1)+1i*signal(:, 2);
+
+% Adjust symbol lengths
+symbolLength = min(length(channel.rxSymbol), length(channel.txSymbol));
+channel.rxSymbol = channel.rxSymbol(1:symbolLength);
+channel.txSymbol = channel.txSymbol(1:symbolLength);
 end
 
 function matchReceivedSignal(obj, channelIdx)
