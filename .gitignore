@@ -7,3 +7,4 @@ my/from_diego/Filter.fig
 single-polarization/results/*
 team/*.hdf
 team/.ipynb_checkpoints/*
+team/*.zip

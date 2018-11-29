@@ -13,7 +13,7 @@ clear;
 %     mkdir(folderName)
 % end
 
-[pathNames, dirNames, fileNames] = dirwalk('resultsLevel1');
+[pathNames, dirNames, fileNames] = dirwalk('resultsLevel1_50GHz');
 
 fileNameList = {};
 resultLevel1 = struct();
