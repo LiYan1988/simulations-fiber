@@ -60,7 +60,7 @@ end
 
 %%
 figure;
-[M, c] = contour(meshXsym, meshYpower, meshQAM, [13, 12, 10, 11]);
+[M, c] = contour(meshXsym, meshYpower, meshQAM, [17, 16, 15, 9]);
 c.LineWidth = 2;
 c.ShowText  = 'on';
 c.LabelSpacing = 180;
@@ -71,7 +71,7 @@ title('QAM SNR (OOK power=0dBm)')
 colormap(parula)
 c = colorbar;
 c.Label.String = 'SNR (dB)';
-caxis([10, 14.7]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([6, 20]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
@@ -79,7 +79,7 @@ print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpdf', 
 
 %% 
 figure;
-[M, c] = contour(meshXsym, meshYpower, meshOOK, [6, 8, 10, 12, 14]);
+[M, c] = contour(meshXsym, meshYpower, meshOOK, [10, 14, 16, 18, 20]);
 c.LineWidth = 2;
 c.ShowText  = 'on';
 c.LabelSpacing = 180;
@@ -90,7 +90,7 @@ title('OOK SNR (OOK power=0dBm)')
 colormap(parula)
 c = colorbar;
 c.Label.String = 'SNR (dB)';
-caxis([4, 17]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([7, 23]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('OOKSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('OOKSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
@@ -101,7 +101,7 @@ OOKSNRth = 14;
 figure;
 meshTemp = meshQAM;
 meshTemp(meshOOK<OOKSNRth) = 0;
-[M, c] = contour(meshXsym, meshYpower, meshTemp, [13, 12, 10]);
+[M, c] = contour(meshXsym, meshYpower, meshTemp, [17, 16, 15, 9]);
 c.LineWidth = 2;
 c.ShowText  = 'on';
 c.LabelSpacing = 180;
@@ -112,7 +112,7 @@ title(sprintf('QAM SNR (OOK power=0dBm, OOK SNR>%ddB)', OOKSNRth))
 colormap(parula)
 c = colorbar;
 c.Label.String = 'SNR (dB)';
-caxis([10, 14]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([6, 20]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz.fig', OOKSNRth, channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz', OOKSNRth, channelSpacing) ), '-dpng', '-r600')
