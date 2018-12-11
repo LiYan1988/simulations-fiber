@@ -427,43 +427,6 @@ actualSamplePerSymbol = totalSpectrum./symbolRate;
 fmax = totalSpectrum/2;
 end
 
-% function [tmax, actualNumberSymbol] = computeTotalTime(obj)
-% % Compute the total time span for simulation
-% % Inputs:
-% %   obj: SinglePolarization object
-% % Outputs:
-% %   tmax: the single side time span of the simulation, the overall
-% %       total time span is 2*tmax
-% %   actualNumberSymbol: actual number of symbols when tmax is computed
-% 
-% bigNumber = 1e24;
-% % Symbol time [fs], convert to fs so that all symbol times are integer
-% symbolTime = ceil(bigNumber./[obj.channelArray.symbolRate]);
-% minNumberSymbol = [obj.channelArray.minNumberSymbol];
-% 
-% % Compute the least common multiple of all symbol times
-% totalTime = 1;
-% for n=1:length(symbolTime)
-%     totalTime = lcm(totalTime, symbolTime(n));
-% end
-% 
-% % Check if the total symbol time is greater than the minimum
-% % for all the channels. If not, multiply with 2 untile it satisfies all
-% % the requirements.
-% for n=1:length(minNumberSymbol)
-%     while totalTime/symbolTime(n)<minNumberSymbol(n)
-%         totalTime = 2*totalTime;
-%     end
-% end
-% % totalTime = totalTime*1.1;
-% 
-% % Compute actual number of symbols for every channel
-% actualNumberSymbol = ceil(totalTime./symbolTime);
-% 
-% % Compute tmax [s], convert back to second
-% tmax = totalTime/2/bigNumber;
-% end
-
 function [tmax, generatedNumberSymbol] = computeTotalTime(obj)
 % Compute the total time span for simulation
 % Inputs:

@@ -88,3 +88,28 @@ Time, activity
 10-Dec-2018 17:58:09, simulation finishes for channel 3
 10-Dec-2018 17:58:09, compute signal quality for channel 3
 10-Dec-2018 17:58:09, simulation finishes
+Time, activity
+11-Dec-2018 10:05:52, simulation starts
+11-Dec-2018 10:05:52, generate signals
+11-Dec-2018 10:06:10, simulate link 1
+11-Dec-2018 10:06:15, simulate link 2
+11-Dec-2018 10:06:19, simulate link 3
+11-Dec-2018 10:06:23, down conversion for channel 1
+11-Dec-2018 10:06:24, synchronize for channel 1
+11-Dec-2018 10:07:19, match signals for channel 1
+11-Dec-2018 10:07:19, find point cloud centers for channel 1
+11-Dec-2018 10:07:19, simulation finishes for channel 1
+11-Dec-2018 10:07:24, compute signal quality for channel 1
+11-Dec-2018 10:07:24, down conversion for channel 2
+11-Dec-2018 10:07:24, synchronize for channel 2
+11-Dec-2018 10:07:39, match signals for channel 2
+11-Dec-2018 10:07:39, find point cloud centers for channel 2
+11-Dec-2018 10:07:39, simulation finishes for channel 2
+11-Dec-2018 10:07:39, compute signal quality for channel 2
+11-Dec-2018 10:07:39, down conversion for channel 3
+11-Dec-2018 10:07:40, synchronize for channel 3
+11-Dec-2018 10:07:43, match signals for channel 3
+11-Dec-2018 10:07:43, find point cloud centers for channel 3
+11-Dec-2018 10:07:43, simulation finishes for channel 3
+11-Dec-2018 10:07:43, compute signal quality for channel 3
+11-Dec-2018 10:07:43, simulation finishes
