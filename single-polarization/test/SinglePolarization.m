@@ -187,14 +187,14 @@ classdef SinglePolarization < matlab.mixin.Copyable
             numberChannel = length(obj.channelArray);
         end
         
-        function [varargout] = plotSpectrum(obj, signalType, figureHandle)
+        function [varargout] = plotSpectrum(obj, signalType)
             % Plot spectrum,
             % signalType: 'tx' for transmitted signal, 'current' for
             % current signal
             % figureHandle: figure handle or positive integer number
             % If there is an output, it is the figure handle.
             
-            h = figure(figureHandle);
+            h = figure();
             hold on;
             grid on;
             box on;
@@ -210,9 +210,9 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
         end
         
-        function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType, figureHandle)
+        function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType)
             % Plot the real part of the signal
-            h = plot(figureHandle);
+            h = figure();
             if strcmp(signalType, 'tx')
                 plot(rem(obj.t, ...
                     obj.channelArray(channelIdx).actualSamplePerSymbol*...
@@ -232,8 +232,8 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
         end
         
-        function plotConstellation(obj, channelIdx, signalType, figureHandle)
-            h = figure(figureHandle);
+        function plotConstellation(obj, channelIdx, signalType)
+            h = figure();
             if strcmp(signalType, 'matched')
                 plot(obj.channelArray(channelIdx).rxSymbolMatched, '.')
                 hold on;
