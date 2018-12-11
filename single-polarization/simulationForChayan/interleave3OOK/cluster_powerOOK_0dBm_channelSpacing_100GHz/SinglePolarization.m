@@ -35,8 +35,6 @@ classdef SinglePolarization < matlab.mixin.Copyable
         resultFolder
         % Log file name
         logFile
-        % Log file fid
-        logFid
         
         % Links
         linkArray
@@ -70,6 +68,12 @@ classdef SinglePolarization < matlab.mixin.Copyable
         
         % Running time, [s]
         runningTime
+    end
+    
+    %% Private properties
+    properties (GetAccess=private, SetAccess=private)
+        % Log file fid
+        logFid
     end
     
     %% Dependent parameters
@@ -170,6 +174,9 @@ classdef SinglePolarization < matlab.mixin.Copyable
             % Current signal in time and spectrum domains
             obj.currentSignalTime = obj.txSignalTime;
             obj.currentSignalSpectrum = obj.txSignalSpectrum;
+            
+            % Close log file
+            fclose(obj.logFid);
         end
         
         function numberLink = get.numberLink(obj)
@@ -180,14 +187,14 @@ classdef SinglePolarization < matlab.mixin.Copyable
             numberChannel = length(obj.channelArray);
         end
         
-        function [varargout] = plotSpectrum(obj, signalType, figureHandle)
+        function [varargout] = plotSpectrum(obj, signalType)
             % Plot spectrum,
             % signalType: 'tx' for transmitted signal, 'current' for
             % current signal
             % figureHandle: figure handle or positive integer number
             % If there is an output, it is the figure handle.
             
-            h = figure(figureHandle);
+            h = figure();
             hold on;
             grid on;
             box on;
@@ -203,9 +210,9 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
         end
         
-        function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType, figureHandle)
+        function [varargout] = plotEye(obj, channelIdx, numberPeriod, signalType)
             % Plot the real part of the signal
-            h = plot(figureHandle);
+            h = figure();
             if strcmp(signalType, 'tx')
                 plot(rem(obj.t, ...
                     obj.channelArray(channelIdx).actualSamplePerSymbol*...
@@ -225,8 +232,8 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
         end
         
-        function plotConstellation(obj, channelIdx, signalType, figureHandle)
-            h = figure(figureHandle);
+        function plotConstellation(obj, channelIdx, signalType)
+            h = figure();
             if strcmp(signalType, 'matched')
                 plot(obj.channelArray(channelIdx).rxSymbolMatched, '.')
                 hold on;
@@ -243,6 +250,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
         %% Simulate transmission and Receiver
         function simulate(obj)
             %% Transmission
+            obj.logFid = fopen(obj.logFile, 'a');
             for n=1:obj.numberLink
                 fprintf(obj.logFid, '%s, simulate link %d\n', datestr(now()), n);
                 ssf(obj, n);
@@ -419,43 +427,6 @@ actualSamplePerSymbol = totalSpectrum./symbolRate;
 fmax = totalSpectrum/2;
 end
 
-% function [tmax, actualNumberSymbol] = computeTotalTime(obj)
-% % Compute the total time span for simulation
-% % Inputs:
-% %   obj: SinglePolarization object
-% % Outputs:
-% %   tmax: the single side time span of the simulation, the overall
-% %       total time span is 2*tmax
-% %   actualNumberSymbol: actual number of symbols when tmax is computed
-% 
-% bigNumber = 1e24;
-% % Symbol time [fs], convert to fs so that all symbol times are integer
-% symbolTime = ceil(bigNumber./[obj.channelArray.symbolRate]);
-% minNumberSymbol = [obj.channelArray.minNumberSymbol];
-% 
-% % Compute the least common multiple of all symbol times
-% totalTime = 1;
-% for n=1:length(symbolTime)
-%     totalTime = lcm(totalTime, symbolTime(n));
-% end
-% 
-% % Check if the total symbol time is greater than the minimum
-% % for all the channels. If not, multiply with 2 untile it satisfies all
-% % the requirements.
-% for n=1:length(minNumberSymbol)
-%     while totalTime/symbolTime(n)<minNumberSymbol(n)
-%         totalTime = 2*totalTime;
-%     end
-% end
-% % totalTime = totalTime*1.1;
-% 
-% % Compute actual number of symbols for every channel
-% actualNumberSymbol = ceil(totalTime./symbolTime);
-% 
-% % Compute tmax [s], convert back to second
-% tmax = totalTime/2/bigNumber;
-% end
-
 function [tmax, generatedNumberSymbol] = computeTotalTime(obj)
 % Compute the total time span for simulation
 % Inputs:
@@ -464,7 +435,7 @@ function [tmax, generatedNumberSymbol] = computeTotalTime(obj)
 %   tmax: the single side time span of the simulation, the overall
 %       total time span is 2*tmax
 %   actualNumberSymbol: actual number of symbols when tmax is computed
-% 
+%
 % Note: for some channel bandwidths, the whole time time window
 % may contain fractions of symbols, e.g., 1024.5 symbols. In this
 % case, first generate 1025 symbols, then cut the extra samples off.
@@ -665,13 +636,25 @@ channel = obj.channelArray(channelIdx);
 
 % Down convert
 signal = signal.*exp(1i*2*pi*channel.centerFrequency.*obj.t);
-signal = upfirdn(signal, channel.fir, 1, 1);
+if (strcmp(channel.modulation, 'OOK') && channel.isHeterodyne) ...
+        || strcmp(channel.modulation, '16QAM')
+    signal = upfirdn(signal, channel.fir, 1, 1);
+    
+    % Compute overhead
+    overhead = ceil((channel.fir-1)/2);
+    signal = signal((overhead+1):(overhead+obj.N));
+    
+    channel.rxTime = signal;
+    
+elseif (strcmp(channel.modulation, 'OOK') && ~channel.isHeterodyne)
+    omegaMask = (obj.omega<pi*channel.opticalFilterBandwidth) ...
+        & (obj.omega>-pi*channel.opticalFilterBandwidth);
+    signalSpectrum = ft(signal, obj.domega);
+    signalSpectrum = signalSpectrum.*omegaMask;
+    channel.rxTime = abs(ift(signalSpectrum, obj.domega)).^2;
+end
 
-% Compute overhead
-overhead = ceil((channel.fir-1)/2);
-signal = signal((overhead+1):(overhead+obj.N));
 
-channel.rxTime = signal;
 end
 
 function synchronize(obj, channelIdx)
@@ -835,6 +818,29 @@ txDist = abs(rx-tx);
 % Decode a symbol to its nearest transmitted symbol, and calculate the
 % corresponding SER
 obj.channelArray(channelIdx).SER = sum(minDist<txDist)/length(txDist);
+
+if strcmp(obj.channelArray(channelIdx).modulation, 'OOK')
+    obj.channelArray(channelIdx).BER = obj.channelArray(channelIdx).SER;
+elseif strcmp(obj.channelArray(channelIdx).modulation, '16QAM')
+    obj.channelArray(channelIdx).BER = obj.channelArray(channelIdx).SER/4;
+end
+
+obj.channelArray(channelIdx).achievableDataRate = ...
+    (1-binaryEntropy(obj.channelArray(channelIdx).BER))*...
+    obj.channelArray(channelIdx).symbolRate;
+
+if strcmp(obj.channelArray(channelIdx).modulation, '16QAM')
+    obj.channelArray(channelIdx).achievableDataRate = obj.channelArray(channelIdx).achievableDataRate*4;
+end
+
+end
+
+function e = binaryEntropy(p)
+if (p<=0) || (p>=1)
+    e = 1;
+else
+    e = -p*log2(p)-(1-p)*log2(1-p);
+end
 end
 
 function computeSNR(obj, channelIdx)

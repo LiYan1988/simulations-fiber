@@ -652,12 +652,6 @@ elseif (strcmp(channel.modulation, 'OOK') && ~channel.isHeterodyne)
     signalSpectrum = ft(signal, obj.domega);
     signalSpectrum = signalSpectrum.*omegaMask;
     channel.rxTime = abs(ift(signalSpectrum, obj.domega)).^2;
-    
-    
-%     figure;
-%     hold on;
-%     plot(obj.omega/(2*pi), 10*log10(abs(ft(signal, obj.domega)).^2))
-%     plot(obj.omega/(2*pi), 10*log10(abs(signalSpectrum).^2))
 end
 
 
@@ -824,6 +818,29 @@ txDist = abs(rx-tx);
 % Decode a symbol to its nearest transmitted symbol, and calculate the
 % corresponding SER
 obj.channelArray(channelIdx).SER = sum(minDist<txDist)/length(txDist);
+
+if strcmp(obj.channelArray(channelIdx).modulation, 'OOK')
+    obj.channelArray(channelIdx).BER = obj.channelArray(channelIdx).SER;
+elseif strcmp(obj.channelArray(channelIdx).modulation, '16QAM')
+    obj.channelArray(channelIdx).BER = obj.channelArray(channelIdx).SER/4;
+end
+
+obj.channelArray(channelIdx).achievableDataRate = ...
+    (1-binaryEntropy(obj.channelArray(channelIdx).BER))*...
+    obj.channelArray(channelIdx).symbolRate;
+
+if strcmp(obj.channelArray(channelIdx).modulation, '16QAM')
+    obj.channelArray(channelIdx).achievableDataRate = obj.channelArray(channelIdx).achievableDataRate*4;
+end
+
+end
+
+function e = binaryEntropy(p)
+if (p<=0) || (p>=1)
+    e = 1;
+else
+    e = -p*log2(p)-(1-p)*log2(1-p);
+end
 end
 
 function computeSNR(obj, channelIdx)

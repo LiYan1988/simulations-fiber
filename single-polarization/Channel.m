@@ -81,12 +81,17 @@ classdef Channel < matlab.mixin.Copyable
         SNR
         SNRdB
         SER
+        % BER = P/log2(modulation order)
+        BER
         % Referenced EVM, computed based on referenc symbols. I.e., I know
         % exactly what symbols are transmitted, in contrast to the blind
         % EVM, which do not know the reference symbols.
         EVM 
         % Relation between EVM and SNR: SNR~1/EVM^2
         % See: https://eprints.soton.ac.uk/263112/1/paper_101.pdf
+        % maximum achievable data rate
+        achievableDataRate
+        
     end
     
     properties (Dependent, SetAccess=private)
