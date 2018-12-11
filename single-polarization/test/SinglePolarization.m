@@ -70,7 +70,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
         runningTime
     end
     
-    %% Private properties 
+    %% Private properties
     properties (GetAccess=private, SetAccess=private)
         % Log file fid
         logFid
@@ -435,7 +435,7 @@ function [tmax, generatedNumberSymbol] = computeTotalTime(obj)
 %   tmax: the single side time span of the simulation, the overall
 %       total time span is 2*tmax
 %   actualNumberSymbol: actual number of symbols when tmax is computed
-% 
+%
 % Note: for some channel bandwidths, the whole time time window
 % may contain fractions of symbols, e.g., 1024.5 symbols. In this
 % case, first generate 1025 symbols, then cut the extra samples off.
@@ -636,13 +636,31 @@ channel = obj.channelArray(channelIdx);
 
 % Down convert
 signal = signal.*exp(1i*2*pi*channel.centerFrequency.*obj.t);
-signal = upfirdn(signal, channel.fir, 1, 1);
+if (strcmp(channel.modulation, 'OOK') && channel.isHeterodyne) ...
+        || strcmp(channel.modulation, '16QAM')
+    signal = upfirdn(signal, channel.fir, 1, 1);
+    
+    % Compute overhead
+    overhead = ceil((channel.fir-1)/2);
+    signal = signal((overhead+1):(overhead+obj.N));
+    
+    channel.rxTime = signal;
+    
+elseif (strcmp(channel.modulation, 'OOK') && ~channel.isHeterodyne)
+    omegaMask = (obj.omega<pi*channel.opticalFilterBandwidth) ...
+        & (obj.omega>-pi*channel.opticalFilterBandwidth);
+    signalSpectrum = ft(signal, obj.domega);
+    signalSpectrum = signalSpectrum.*omegaMask;
+    channel.rxTime = abs(ift(signalSpectrum, obj.domega)).^2;
+    
+    
+%     figure;
+%     hold on;
+%     plot(obj.omega/(2*pi), 10*log10(abs(ft(signal, obj.domega)).^2))
+%     plot(obj.omega/(2*pi), 10*log10(abs(signalSpectrum).^2))
+end
 
-% Compute overhead
-overhead = ceil((channel.fir-1)/2);
-signal = signal((overhead+1):(overhead+obj.N));
 
-channel.rxTime = signal;
 end
 
 function synchronize(obj, channelIdx)

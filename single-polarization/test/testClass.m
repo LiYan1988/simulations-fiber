@@ -5,19 +5,19 @@ close all;
 
 %% Default properties
 channelArray = Channel('centerFrequency', -50e9, 'firFactor', 0.9, ...
-    'powerdBm', -3);
-linkArray = Link();
+    'powerdBm', -3, 'isHeterodyne', false);
+linkArray = Link('NFdB', 20);
 
 %% Other property values
 channelArray(2) = Channel('modulation', '16QAM', 'symbolRate', 32e9, ...
     'centerFrequency', 0e9, 'firFactor', 0.2, ...
     'minSamplePerSymbol', 16, 'minNumberSymbol', 2^14, 'powerdBm', -3);
-linkArray(2) = Link();
+% linkArray(2) = Link();
 
 %% Partial default values
 channelArray(3) = Channel('centerFrequency', 50e9, ...
     'minSamplePerSymbol', 4, 'powerdB', -3);
-linkArray(3) = Link();
+% linkArray(3) = Link();
 
 %% SinglePolarization
 sp = SinglePolarization('linkArray', linkArray, ...
@@ -26,3 +26,12 @@ clearvars linkArray channelArray
 
 %% Simulate
 sp.simulate();
+
+%% 
+h = sp.plotSpectrum('tx');
+h.Children.Title.String = 'Tx Spectrum';
+h = sp.plotSpectrum('rx');
+h.Children.Title.String = 'Rx Spectrum';
+
+%% 
+sp.plotConstellation(1, 'rotated')
