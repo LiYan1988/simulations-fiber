@@ -652,12 +652,6 @@ elseif (strcmp(channel.modulation, 'OOK') && ~channel.isHeterodyne)
     signalSpectrum = ft(signal, obj.domega);
     signalSpectrum = signalSpectrum.*omegaMask;
     channel.rxTime = abs(ift(signalSpectrum, obj.domega)).^2;
-    
-    
-%     figure;
-%     hold on;
-%     plot(obj.omega/(2*pi), 10*log10(abs(ft(signal, obj.domega)).^2))
-%     plot(obj.omega/(2*pi), 10*log10(abs(signalSpectrum).^2))
 end
 
 
