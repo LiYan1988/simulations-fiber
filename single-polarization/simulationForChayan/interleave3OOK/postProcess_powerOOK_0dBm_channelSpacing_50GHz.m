@@ -45,6 +45,18 @@ OOKSNRdB = min(resultLevel1.SNRdB(:, [1, 3, 5]), [], 2);
 results = [QAMSymbolRate, QAMPowerdBm, QAMSNRdB, OOKSNRdB];
 results = sortrows(results, [1, 2]);
 
+%% Remove duplicate rows
+resultsNew = results(1, :);
+for n=2:length(results)
+    tmp = results(n, :);
+    if (tmp(1)==resultsNew(end, 1)) && (tmp(2)==resultsNew(end, 2))
+        continue;
+    else
+        resultsNew(end+1, :) = tmp;
+    end
+end
+
+%% Extract columns
 meshYpower = reshape(results(:, 2), 31, []);
 meshXsym = reshape(results(:, 1), 31, [])*1e-9;
 meshQAM = reshape(results(:, 3), 31, []);

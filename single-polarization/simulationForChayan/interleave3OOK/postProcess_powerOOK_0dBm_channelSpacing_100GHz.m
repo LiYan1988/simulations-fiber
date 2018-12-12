@@ -79,7 +79,7 @@ print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpdf', 
 
 %% 
 figure;
-[M, c] = contour(meshXsym, meshYpower, meshOOK, [10, 14, 16, 17, 18]);
+[M, c] = contour(meshXsym, meshYpower, meshOOK, [14, 16, 18, 20]);
 c.LineWidth = 2;
 c.ShowText  = 'on';
 c.LabelSpacing = 180;
@@ -90,7 +90,7 @@ title('OOK SNR (OOK power=0dBm)')
 colormap(parula)
 c = colorbar;
 c.Label.String = 'SNR (dB)';
-caxis([8, 18]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([8, 22]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('OOKSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('OOKSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
