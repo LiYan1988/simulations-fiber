@@ -108,7 +108,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             obj.simulationId = p.Results.simulationId;
             obj.randomSeed = p.Results.randomSeed;
             obj.resultFolder = p.Results.resultFolder;
-            obj.logFile = sprintf('%s%d.csv', obj.simulationName, obj.simulationId);
+            obj.logFile = sprintf('log_%s_%d.csv', obj.simulationName, obj.simulationId);
             obj.linkArray = copy(p.Results.linkArray);
             obj.channelArray = copy(p.Results.channelArray);
             obj.useParallel = p.Results.useParallel;
@@ -286,7 +286,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             obj.runningTime = toc;
             
             if obj.saveObject
-                matFile = sprintf('%s%d.mat', obj.simulationName, obj.simulationId);
+                matFile = sprintf('object_%s_%d.mat', obj.simulationName, obj.simulationId);
                 matFile = fullfile(obj.resultFolder, matFile);
                 save(matFile, 'obj');
             end

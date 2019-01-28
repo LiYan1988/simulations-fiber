@@ -5,3 +5,5 @@
 my/from_diego/Filter.fig
 *.asv
 single-polarization/results/*
+single-polarization/simulationForChayan/OOK+OOK/cluster
+single-polarization/simulationForChayan/QAM+QAM/cluster
