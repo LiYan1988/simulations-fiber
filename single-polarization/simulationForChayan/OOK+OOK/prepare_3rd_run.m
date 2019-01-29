@@ -1,10 +1,11 @@
 %% Prepare simulateSingleQAM on Hebbe
+% There is a problem in prepare_2nd_run.m, some failed tasks are not run.
 clc;
 close all;
 clear;
 
 %%
-folderName = fullfile(pwd, 'cluster');
+folderName = fullfile(pwd, 'cluster-3rd-run');
 if ~exist(folderName, 'dir')
     mkdir(folderName)
 end
@@ -19,25 +20,37 @@ copyfile('run_sbatch.py', folderName)
 % Split the variables into groups of 16, so that the resources in Glenn is
 % used optimally
 cpuPerNode = 2; 
-powerQAM1 = -10:1:10;
-powerQAM2 = -10:1:10;
-symbolRateQAM1 = [32e9, 64e9];
-symbolRateQAM2 = [32e9, 64e9];
+powerOOK1 = -10:1:10;
+powerOOK2 = -10:1:10;
+symbolRateOOK = [10e9];
 channelSpacing = [50e9, 100e9, 150e9, 200e9];
-wallTime = [0, 20, 0, 0];
+wallTime = [0, 10, 0, 0];
 
-parameterArray = combvec(powerQAM1, powerQAM2, symbolRateQAM1, symbolRateQAM2, channelSpacing);
+parameterArray = combvec(powerOOK1, powerOOK2, symbolRateOOK, channelSpacing);
 
+%% Remove tasks that are completed
+successParameter = readtable('resultsLevel1.csv');
+for idx=1:size(successParameter, 1)
+    p1 = successParameter.powerdBm_1(idx);
+    p2 = successParameter.powerdBm_2(idx);
+    cs = successParameter.centerFrequency_2(idx);
+    p1Cond = parameterArray(1, :)==p1;
+    p2Cond = parameterArray(2, :)==p2;
+    csCond = parameterArray(4, :)==cs;
+    cond = p1Cond & p2Cond & csCond;
+    parameterArray(:, cond) = [];
+end
+
+%% Parameter strings
 % array=( "one;1;a;r" "two;2;b;s" "three;3;c;t" )
 % powerQAM, powerOOK, symbolRate, channelSpacing
 vstr = cell(ceil(length(parameterArray)/cpuPerNode), cpuPerNode);
 rowIdx = 1;
 colIdx = 1;
 for n = 1:length(parameterArray)
-    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d;%d" ', ...
+    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d" ', ...
         parameterArray(1, n), parameterArray(2, n), ...
-        parameterArray(3, n), parameterArray(4, n), ...
-        parameterArray(5, n));
+        parameterArray(3, n), parameterArray(4, n));
     colIdx = colIdx+1;
     if colIdx>cpuPerNode
         rowIdx = rowIdx+1;

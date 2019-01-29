@@ -1,10 +1,14 @@
 %% Prepare simulateSingleQAM on Hebbe
+% This is the second run for OOK+OOK. In the first run, some tasks are not
+% finished due to errors (mainly time limited errors). This file will
+% prepare those failed tasks and rerun them for a second time.
+% NOTE: longer wall time!
 clc;
 close all;
 clear;
 
 %%
-folderName = fullfile(pwd, 'cluster');
+folderName = fullfile(pwd, 'cluster_2nd_run');
 if ~exist(folderName, 'dir')
     mkdir(folderName)
 end
@@ -15,18 +19,28 @@ copyfile('../../SinglePolarization.m', folderName)
 copyfile('simulateScenario.m', folderName)
 copyfile('run_sbatch.py', folderName)
 
+%% Extract failed tasks
+% The failed tasks are written in OOK+OOK_error.txt
+fid = fopen('OOK+OOK_error.txt');
+A = fscanf(fid, '%s\n');
+B = strsplit(A, '.stderr');
+C = zeros(length(B)-1, 1);
+for idx=1:length(B)-1
+    C(idx) = str2num(B{idx}(19:end));
+end
+
 %% Variables
 % Split the variables into groups of 16, so that the resources in Glenn is
 % used optimally
+% NOTE: Longer wall time!
 cpuPerNode = 2; 
-powerQAM1 = -10:1:10;
-powerQAM2 = -10:1:10;
-symbolRateQAM1 = [32e9, 64e9];
-symbolRateQAM2 = [32e9, 64e9];
+powerOOK1 = -10:1:10;
+powerOOK2 = -10:1:10;
+symbolRateOOK = [10e9];
 channelSpacing = [50e9, 100e9, 150e9, 200e9];
-wallTime = [0, 20, 0, 0];
+wallTime = [0, 10, 0, 0]; % 10 hours
 
-parameterArray = combvec(powerQAM1, powerQAM2, symbolRateQAM1, symbolRateQAM2, channelSpacing);
+parameterArray = combvec(powerOOK1, powerOOK2, symbolRateOOK, channelSpacing);
 
 % array=( "one;1;a;r" "two;2;b;s" "three;3;c;t" )
 % powerQAM, powerOOK, symbolRate, channelSpacing
@@ -34,10 +48,9 @@ vstr = cell(ceil(length(parameterArray)/cpuPerNode), cpuPerNode);
 rowIdx = 1;
 colIdx = 1;
 for n = 1:length(parameterArray)
-    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d;%d" ', ...
+    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d" ', ...
         parameterArray(1, n), parameterArray(2, n), ...
-        parameterArray(3, n), parameterArray(4, n), ...
-        parameterArray(5, n));
+        parameterArray(3, n), parameterArray(4, n));
     colIdx = colIdx+1;
     if colIdx>cpuPerNode
         rowIdx = rowIdx+1;
@@ -51,13 +64,23 @@ for n=1:length(variableArray)
 end
 
 %% Prepare bash files
-for n = 1:length(variableArray)
+% for n = 1:length(variableArray)
+%     modifyBash(...
+%         fullfile(pwd, 'simulateScenario.sh'), ...
+%         fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
+%         sprintf('simulateScenario%d', n), ...
+%         wallTime, ...
+%         variableArray{n}, ...
+%         cpuPerNode);
+% end
+
+for n = 1:length(C)
     modifyBash(...
         fullfile(pwd, 'simulateScenario.sh'), ...
-        fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
-        sprintf('simulateScenario%d', n), ...
+        fullfile(folderName, sprintf('simulateScenario%d.sh', C(n))), ...
+        sprintf('simulateScenario%d', C(n)), ...
         wallTime, ...
-        variableArray{n}, ...
+        variableArray{C(n)}, ...
         cpuPerNode);
 end
 

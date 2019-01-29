@@ -7,3 +7,10 @@ my/from_diego/Filter.fig
 single-polarization/results/*
 single-polarization/simulationForChayan/OOK+OOK/cluster
 single-polarization/simulationForChayan/QAM+QAM/cluster
+single-polarization/simulationForChayan/OOK+OOK/*.zip
+single-polarization/simulationForChayan/OOK+OOK/resultsLevel1-1st-run
+single-polarization/simulationForChayan/OOK+OOK/resultsLevel1-2nd-run
+single-polarization/simulationForChayan/OOK+OOK/cluster_2nd_run
+single-polarization/simulationForChayan/QAM+QAM/cluster-2nd-run
+*.zip
+single-polarization/simulationForChayan/OOK+OOK/cluster-3rd-run/

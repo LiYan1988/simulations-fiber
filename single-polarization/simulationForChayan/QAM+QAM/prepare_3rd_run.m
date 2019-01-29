@@ -1,10 +1,14 @@
 %% Prepare simulateSingleQAM on Hebbe
+% This is the second run for QAM+QAM. In the first run, some tasks are not
+% completed due to errors (mainly time limit errors). This file prepares
+% those fialed tasks and runs them again.
+% NOTE: LONGER WALL TIME!!
 clc;
 close all;
 clear;
 
 %%
-folderName = fullfile(pwd, 'cluster');
+folderName = fullfile(pwd, 'cluster-2nd-run');
 if ~exist(folderName, 'dir')
     mkdir(folderName)
 end
@@ -24,10 +28,28 @@ powerQAM2 = -10:1:10;
 symbolRateQAM1 = [32e9, 64e9];
 symbolRateQAM2 = [32e9, 64e9];
 channelSpacing = [50e9, 100e9, 150e9, 200e9];
-wallTime = [0, 20, 0, 0];
+wallTime = [0, 10, 0, 0];
 
 parameterArray = combvec(powerQAM1, powerQAM2, symbolRateQAM1, symbolRateQAM2, channelSpacing);
 
+%% Remove tasks that are completed
+successParameter = readtable('resultsLevel1-1st-run.csv');
+for idx=1:size(successParameter, 1)
+    p1 = successParameter.powerdBm_1(idx);
+    p2 = successParameter.powerdBm_2(idx);
+    cs = successParameter.centerFrequency_2(idx);
+    s1 = successParameter.symbolRate_1(idx);
+    s2 = successParameter.symbolRate_2(idx);
+    p1Cond = parameterArray(1, :)==p1;
+    p2Cond = parameterArray(2, :)==p2;
+    s1Cond = parameterArray(3, :)==s1;
+    s2Cond = parameterArray(4, :)==s2;
+    csCond = parameterArray(5, :)==cs;
+    cond = p1Cond & p2Cond & s1Cond & s2Cond & csCond;
+    parameterArray(:, cond) = [];
+end
+
+%% Parameter strings
 % array=( "one;1;a;r" "two;2;b;s" "three;3;c;t" )
 % powerQAM, powerOOK, symbolRate, channelSpacing
 vstr = cell(ceil(length(parameterArray)/cpuPerNode), cpuPerNode);
@@ -37,7 +59,7 @@ for n = 1:length(parameterArray)
     vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d;%d" ', ...
         parameterArray(1, n), parameterArray(2, n), ...
         parameterArray(3, n), parameterArray(4, n), ...
-        parameterArray(5, n));
+        parameterArray(4, n));
     colIdx = colIdx+1;
     if colIdx>cpuPerNode
         rowIdx = rowIdx+1;

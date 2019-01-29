@@ -1,10 +1,14 @@
 %% Prepare simulateSingleQAM on Hebbe
+% This is the second run for QAM+QAM. In the first run, some tasks are not
+% completed due to errors (mainly time limit errors). This file prepares
+% those fialed tasks and runs them again.
+% NOTE: LONGER WALL TIME!!
 clc;
 close all;
 clear;
 
 %%
-folderName = fullfile(pwd, 'cluster');
+folderName = fullfile(pwd, 'cluster-2nd-run');
 if ~exist(folderName, 'dir')
     mkdir(folderName)
 end
@@ -15,6 +19,17 @@ copyfile('../../SinglePolarization.m', folderName)
 copyfile('simulateScenario.m', folderName)
 copyfile('run_sbatch.py', folderName)
 
+%% Extract failed tasks
+% The failed tasks are written in QAM+QAM_error.txt
+fid = fopen('QAM+QAM_error.txt');
+A = fscanf(fid, '%s\n');
+B = strsplit(A, '.stderr');
+C = zeros(length(B)-1, 1);
+for idx=1:length(B)-1
+    C(idx) = str2num(B{idx}(19:end));
+end
+
+
 %% Variables
 % Split the variables into groups of 16, so that the resources in Glenn is
 % used optimally
@@ -24,7 +39,7 @@ powerQAM2 = -10:1:10;
 symbolRateQAM1 = [32e9, 64e9];
 symbolRateQAM2 = [32e9, 64e9];
 channelSpacing = [50e9, 100e9, 150e9, 200e9];
-wallTime = [0, 20, 0, 0];
+wallTime = [0, 10, 0, 0];
 
 parameterArray = combvec(powerQAM1, powerQAM2, symbolRateQAM1, symbolRateQAM2, channelSpacing);
 
@@ -37,7 +52,7 @@ for n = 1:length(parameterArray)
     vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d;%d" ', ...
         parameterArray(1, n), parameterArray(2, n), ...
         parameterArray(3, n), parameterArray(4, n), ...
-        parameterArray(5, n));
+        parameterArray(4, n));
     colIdx = colIdx+1;
     if colIdx>cpuPerNode
         rowIdx = rowIdx+1;
@@ -51,13 +66,13 @@ for n=1:length(variableArray)
 end
 
 %% Prepare bash files
-for n = 1:length(variableArray)
+for n = 1:length(C)
     modifyBash(...
         fullfile(pwd, 'simulateScenario.sh'), ...
-        fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
-        sprintf('simulateScenario%d', n), ...
+        fullfile(folderName, sprintf('simulateScenario%d.sh', C(n))), ...
+        sprintf('simulateScenario%d', C(n)), ...
         wallTime, ...
-        variableArray{n}, ...
+        variableArray{C(n)}, ...
         cpuPerNode);
 end
 
