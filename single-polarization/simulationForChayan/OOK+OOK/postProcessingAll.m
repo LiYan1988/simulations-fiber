@@ -33,4 +33,4 @@ for n = 1:length(fileNames)
 end
 
 resultLevel1 = struct2table(resultLevel1);
-writetable(resultLevel1, 'resultsLevel1.csv', 'Delimiter', ';')
+writetable(resultLevel1(:, 1:end-1), 'resultsLevel1.csv', 'Delimiter', ',')
