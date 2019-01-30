@@ -98,7 +98,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             addParameter(p, 'linkArray', Link(), @(x) isa(x, 'Link'));
             addParameter(p, 'channelArray', Channel(), @(x) isa(x, 'Channel'));
             addParameter(p, 'useParallel', true, @islogical);
-            addParameter(p, 'saveObject', true, @islogical);
+            addParameter(p, 'saveObject', false, @islogical);
             
             % Parse inputs
             parse(p, varargin{:});

@@ -23,6 +23,9 @@ for n = 1:length(fileNames)
         fileNameList{i} = fullfile(pathNames{n}, fileNames{n}{m});
         %         copyfile(fileNameList{i}, folderName)
         tmp = load(fileNameList{i});
+        if any(tmp.result.centerFrequency==3.2e10)
+            continue
+        end
         if i==1
             resultLevel1 = tmp.result;
         else
