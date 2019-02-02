@@ -23,7 +23,7 @@ for n = 1:length(fileNames)
         fileNameList{i} = fullfile(pathNames{n}, fileNames{n}{m});
         %         copyfile(fileNameList{i}, folderName)
         tmp = load(fileNameList{i});
-        if any(tmp.result.centerFrequency==3.2e10)
+        if any(tmp.result.centerFrequency==3.2e10) || any(tmp.result.centerFrequency==6.4e10)
             continue
         end
         if i==1
@@ -36,4 +36,4 @@ for n = 1:length(fileNames)
 end
 
 resultLevel1 = struct2table(resultLevel1);
-writetable(resultLevel1, 'resultsLevel1-partial.csv', 'Delimiter', ';')
+writetable(resultLevel1(:, 1:end-1), 'resultsLevel1-partial.csv', 'Delimiter', ',')
