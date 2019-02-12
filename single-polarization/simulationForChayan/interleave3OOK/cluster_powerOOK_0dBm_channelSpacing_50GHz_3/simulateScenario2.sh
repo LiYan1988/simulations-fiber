@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #SBATCH -p hebbe
 #SBATCH -A C3SE407-15-3
-#SBATCH -J singleQAM
+#SBATCH -J simulateScenario2
 #SBATCH -n 1
-#SBATCH -t 0-00:10:00
-#SBATCH -o singleQAM.stdout
-#SBATCH -e singleQAM.stderr
+#SBATCH -t 0-20:00:00
+#SBATCH -o simulateScenario2.stdout
+#SBATCH -e simulateScenario2.stderr
 
 
 module load MATLAB
@@ -13,7 +13,7 @@ module load MATLAB
 cp  -r $SLURM_SUBMIT_DIR/* $TMPDIR
 cd $TMPDIR
 
-array=( "one;1;a;r" "two;2;b;s" "three;3;c;t" )
+array=(  "5;0;1000000000;50000000000" )
 for i in "${array[@]}"
 do
     arr=(${i//;/ })
@@ -24,8 +24,8 @@ done
 
 wait
 
-mkdir $SLURM_SUBMIT_DIR/run
-cp -rf $TMPDIR/results/* $SLURM_SUBMIT_DIR/run
+mkdir $SLURM_SUBMIT_DIR/simulateScenario2
+cp -rf $TMPDIR/results/* $SLURM_SUBMIT_DIR/simulateScenario2
 rm -rf $TMPDIR/*
 
 #End of script

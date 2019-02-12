@@ -56,11 +56,13 @@ for n=2:length(results)
     end
 end
 
+save('resultsNew_50GHz.mat', 'resultsNew')
+
 %% Extract columns
-meshYpower = reshape(results(:, 2), 31, []);
-meshXsym = reshape(results(:, 1), 31, [])*1e-9;
-meshQAM = reshape(results(:, 3), 31, []);
-meshOOK = reshape(results(:, 4), 31, []);
+meshYpower = reshape(resultsNew(:, 2), 31, []);
+meshXsym = reshape(resultsNew(:, 1), 31, [])*1e-9;
+meshQAM = reshape(resultsNew(:, 3), 31, []);
+meshOOK = reshape(resultsNew(:, 4), 31, []);
 
 %%
 figureFolder = sprintf('figures_%dGHz', channelSpacing);
