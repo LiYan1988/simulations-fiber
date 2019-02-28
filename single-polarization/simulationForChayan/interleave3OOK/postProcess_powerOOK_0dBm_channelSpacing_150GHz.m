@@ -35,6 +35,7 @@ end
 
 resultLevel1 = struct2table(resultLevel1);
 writetable(resultLevel1, sprintf('resultsLevel1_%dGHz.csv', channelSpacing))
+save(sprintf('resultsLevel1_%dGHz.mat', channelSpacing), 'resultLevel1')
 
 %%
 QAMSNRdB = mean(resultLevel1.SNRdB(:, [2, 4]), 2);
