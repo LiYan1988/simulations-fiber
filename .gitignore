@@ -19,3 +19,4 @@ single-polarization/simulationForChayan/QAM+QAM/cluster-5th-run/
 single-polarization/simulationForChayan/OOK+OOK/resultsLevel1-partial-4/
 !single-polarization/simulationForChayan/interleave3OOK/*.zip
 !single-polarization/simulationForChayan/interleave3OOK/*.csv
+single-polarization/simulationForChayan/interleave3OOK-2/cluster_powerOOK_0dBm_channelSpacing_150GHz/
