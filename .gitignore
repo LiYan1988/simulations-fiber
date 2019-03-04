@@ -20,3 +20,4 @@ single-polarization/simulationForChayan/OOK+OOK/resultsLevel1-partial-4/
 !single-polarization/simulationForChayan/interleave3OOK/*.zip
 !single-polarization/simulationForChayan/interleave3OOK/*.csv
 single-polarization/simulationForChayan/interleave3OOK-2/cluster_powerOOK_0dBm_channelSpacing_150GHz/
+single-polarization/simulationForChayan/interleave3OOK-2/resultsLevel1_150GHz/
