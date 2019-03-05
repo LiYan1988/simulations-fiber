@@ -13,7 +13,7 @@ clear;
 %     mkdir(folderName)
 % end
 
-[pathNames, dirNames, fileNames] = dirwalk('resultsLevel1-1st-run');
+[pathNames, dirNames, fileNames] = dirwalk('resultsLevel1');
 
 fileNameList = {};
 resultLevel1 = struct();
@@ -33,4 +33,4 @@ for n = 1:length(fileNames)
 end
 
 resultLevel1 = struct2table(resultLevel1);
-writetable(resultLevel1, 'resultsLevel1_1st_run.csv', 'Delimiter', ';')
+writetable(resultLevel1, 'resultsLevel1.csv')
