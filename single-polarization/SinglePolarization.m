@@ -292,7 +292,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             end
         end
         
-        function saveSimulationResult(obj, level1, level2, level3)
+        function [result, symbol, signal] = saveSimulationResult(obj, level1, level2, level3)
             % Save high level simulation results including:
             %   SNR, SNRdB, EVM, SER
             % Save figures including:
@@ -314,6 +314,8 @@ classdef SinglePolarization < matlab.mixin.Copyable
             result.SNRdB = [obj.channelArray.SNRdB];
             result.EVM = [obj.channelArray.EVM];
             result.SER = [obj.channelArray.SER];
+            result.BER = [obj.channelArray.BER];
+            result.achievableDataRate = [obj.channelArray.achievableDataRate];
             result.runningTime = obj.runningTime;
             
             % More detailed channel symbols
@@ -837,7 +839,7 @@ end
 
 function e = binaryEntropy(p)
 if (p<=0) || (p>=1)
-    e = 1;
+    e = 0;
 else
     e = -p*log2(p)-(1-p)*log2(1-p);
 end
