@@ -20,14 +20,15 @@ copyfile('run_sbatch.py', folderName)
 %% Variables
 % Split the variables into groups of 16, so that the resources in Glenn is
 % used optimally
-cpuPerNode = 16;
+cpuPerNode = 1;
 powerQAM = -20:1:10;
 powerOOK = [0];
 % symbolRate = [32e9, 64e9];
 % channelSpacing = [50e9, 100e9, 150e9, 200e9];
-symbolRate = (1:1:90)*1e9;
+symbolRate = (1:1:110)*1e9;
 channelSpacing = [100e9];
-wallTime = [0, 10, 0, 0];
+wallTime = [0, 20, 0, 0];
+cpuPerJob = 4;
 
 parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
 
@@ -55,15 +56,16 @@ end
 %% Prepare bash files
 for n = 1:length(variableArray)
     modifyBash(...
-        fullfile(pwd, 'simulateScenario.sh'), ...
+        fullfile(pwd, 'simulateScenario_vera.sh'), ...
         fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
         sprintf('simulateScenario%d', n), ...
         wallTime, ...
-        variableArray{n});
+        variableArray{n}, ...
+        cpuPerJob);
 end
 
 %% Modify bash files
-function modifyBash(fileNameSrc, fileNameDst, jobName, wallTime, variableArray)
+function modifyBash(fileNameSrc, fileNameDst, jobName, wallTime, variableArray, cpuPerJob)
 
 fid = fopen(fileNameSrc, 'r');
 tline = fgetl(fid);
@@ -77,6 +79,7 @@ end
 fclose(fid);
 
 A{4} = sprintf('#SBATCH -J %s', jobName);
+A{5} = sprintf('#SBATCH -n %d', cpuPerJob);
 A{6} = sprintf('#SBATCH -t %1d-%02d:%02d:%02d', ...
     wallTime(1), wallTime(2), wallTime(3), wallTime(4));
 A{7} = sprintf('#SBATCH -o %s.stdout', jobName);

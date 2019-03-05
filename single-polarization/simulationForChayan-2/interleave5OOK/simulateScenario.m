@@ -3,11 +3,13 @@ function simulateScenario(powerQAM, powerOOK, symbolRate, channelSpacing)
 % Variables:
 % QAM power: -20:1:10
 % channel spacing: [50, 100, 150, 200] GHz
-% QAM symbol rate: 1:1:channelSpacing-10 GHz
+% QAM symbol rate: 1:1:channelSpacing+10 GHz
 % 
 % Constant:
 % OOK power: 0
 % OOK symbol rate: 10 GHz
+
+% Note: for OOK channel, its optical filter bandwidth is always 50 GHz
 
 numberChannel = 9;
 
@@ -28,7 +30,9 @@ for n = 1:numberChannel
             'centerFrequency', (n-(numberChannel+1)/2)*channelSpacing, ...
             'powerdBm', powerOOK, ...
             'minNumberSymbol', 2^14, ...
-            'opticalFilterBandwidth', channelSpacing);
+            'opticalFilterBandwidth', 50e9, ... % Note: for OOK channel, its optical filter bandwidth is always 50 GHz
+            'firFactor', 1 ... % For OOK, firFactor=1 means a normal Gaussian pulse
+            ); 
     else
         channelArray(n) = ...
             Channel('modulation', '16QAM', ... 
@@ -36,7 +40,9 @@ for n = 1:numberChannel
             'symbolRate', symbolRate, ...
             'powerdBm', powerQAM, ...
             'minNumberSymbol', 2^14, ...
-            'opticalFilterBandwidth', channelSpacing);
+            'opticalFilterBandwidth', channelSpacing, ... % for QAM, not necessary to specify optical filter bandwidth
+            'firFilter', 0.2... % for QAM, firFactor is the roll-off factor which is 0.2
+            ); 
     end
 end
 

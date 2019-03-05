@@ -14,7 +14,7 @@ clear;
 % end
 
 channelSpacing = 50;
-[pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_interleave4OOK_%dGHz', channelSpacing));
+[pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_powerOOK_0dBm_channelSpacing_%dGHz', channelSpacing));
 
 fileNameList = {};
 resultLevel1 = struct();
@@ -58,7 +58,7 @@ end
 
 %%
 fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshQAM, [13, 12, 11, 10, 9]);
+[M, c] = contour(meshXsym, meshYpower, meshQAM, [13, 12, 11, 10]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 360)
@@ -105,7 +105,7 @@ OOKSNRth = 18;
 fig = figure;
 meshTemp = meshQAM;
 meshTemp(meshOOK<OOKSNRth) = 0;
-[M, c] = contour(meshXsym, meshYpower, meshTemp, [13, 12, 11, 10, 9]);
+[M, c] = contour(meshXsym, meshYpower, meshTemp, [13, 12, 11, 10]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 600)
