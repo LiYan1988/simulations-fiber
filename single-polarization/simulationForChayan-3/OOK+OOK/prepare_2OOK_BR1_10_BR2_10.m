@@ -1,4 +1,5 @@
-%% Prepare simulateSingleQAM on Glenn
+%% Prepare OOK+OOK on Hebbe
+% variable parameters: power1, power2, bw1, bw2, 
 clc;
 close all;
 clear;
@@ -20,17 +21,16 @@ copyfile('run_sbatch.py', folderName)
 %% Variables
 % Split the variables into groups of 16, so that the resources in Glenn is
 % used optimally
-cpuPerNode = 1;
-powerQAM = -20:1:10;
-powerOOK = [0];
-% symbolRate = [32e9, 64e9];
-% channelSpacing = [50e9, 100e9, 150e9, 200e9];
-symbolRate = (1:1:110)*1e9;
-channelSpacing = [100e9];
+cpuPerNode = 1; 
+powerOOK1 = -10:1:10;
+powerOOK2 = -10:1:10;
+symbolRateOOK1 = [10e9];
+symbolRateOOK2 = [10e9];
+channelSpacing = [50e9, 100e9, 150e9, 200e9];
 wallTime = [0, 10, 0, 0];
 cpuPerJob = 2;
 
-parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
+parameterArray = combvec(powerOOK1, powerOOK2, symbolRateOOK1, symbolRateOOK2, channelSpacing);
 
 % array=( "one;1;a;r" "two;2;b;s" "three;3;c;t" )
 % powerQAM, powerOOK, symbolRate, channelSpacing
@@ -38,9 +38,10 @@ vstr = cell(ceil(length(parameterArray)/cpuPerNode), cpuPerNode);
 rowIdx = 1;
 colIdx = 1;
 for n = 1:length(parameterArray)
-    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d" ', ...
+    vstr{rowIdx, colIdx} = sprintf(' "%d;%d;%d;%d;%d" ', ...
         parameterArray(1, n), parameterArray(2, n), ...
-        parameterArray(3, n), parameterArray(4, n));
+        parameterArray(3, n), parameterArray(4, n), ...
+        parameterArray(5, n));
     colIdx = colIdx+1;
     if colIdx>cpuPerNode
         rowIdx = rowIdx+1;
@@ -61,11 +62,11 @@ for n = 1:length(variableArray)
         sprintf('simulateScenario%d', n), ...
         wallTime, ...
         variableArray{n}, ...
-        cpuPerJob);
+        cpuPerNode);
 end
 
 %% Modify bash files
-function modifyBash(fileNameSrc, fileNameDst, jobName, wallTime, variableArray, cpuPerJob)
+function modifyBash(fileNameSrc, fileNameDst, jobName, wallTime, variableArray, cpuPerNode)
 
 fid = fopen(fileNameSrc, 'r');
 tline = fgetl(fid);
@@ -79,7 +80,7 @@ end
 fclose(fid);
 
 A{4} = sprintf('#SBATCH -J %s', jobName);
-A{5} = sprintf('#SBATCH -n %d', cpuPerJob);
+A{5} = sprintf('#SBATCH -n %d', cpuPerNode);
 A{6} = sprintf('#SBATCH -t %1d-%02d:%02d:%02d', ...
     wallTime(1), wallTime(2), wallTime(3), wallTime(4));
 A{7} = sprintf('#SBATCH -o %s.stdout', jobName);
@@ -97,4 +98,3 @@ for i = 1:numel(A)
 end
 fclose(fid);
 end
-

@@ -25,10 +25,10 @@ powerQAM = -20:1:10;
 powerOOK = [0];
 % symbolRate = [32e9, 64e9];
 % channelSpacing = [50e9, 100e9, 150e9, 200e9];
-symbolRate = (1:1:110)*1e9;
-channelSpacing = [100e9];
+symbolRate = (1:1:60)*1e9;
+channelSpacing = [50e9];
 wallTime = [0, 10, 0, 0];
-cpuPerJob = 2;
+cpuPerJob = 1;
 
 parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
 

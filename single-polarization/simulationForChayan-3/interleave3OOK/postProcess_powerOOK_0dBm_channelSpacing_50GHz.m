@@ -13,7 +13,7 @@ clear;
 %     mkdir(folderName)
 % end
 
-channelSpacing = 100;
+channelSpacing = 50;
 [pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_powerOOK_0dBm_channelSpacing_%dGHz', channelSpacing));
 
 fileNameList = {};
@@ -58,7 +58,7 @@ end
 
 %%
 fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshQAM, [14, 13, 12, 11, 10]);
+[M, c] = contour(meshXsym, meshYpower, meshQAM, [13, 12, 11, 10]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 360)
@@ -72,7 +72,7 @@ fig.PaperPosition = [0 0 8 4.5];
 colormap(parula)
 % c = colorbar;
 % c.Label.String = 'SNR (dB)';
-caxis([9, 15]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([9, 14]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
@@ -80,7 +80,7 @@ print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpdf', 
 
 %% 
 fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshOOK, [16, 18, 20, 22, 24]);
+[M, c] = contour(meshXsym, meshYpower, meshOOK, [18, 22, 24, 25]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 600)

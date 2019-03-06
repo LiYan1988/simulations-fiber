@@ -13,8 +13,8 @@ clear;
 %     mkdir(folderName)
 % end
 
-channelSpacing = 100;
-[pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_powerOOK_0dBm_channelSpacing_%dGHz', channelSpacing));
+channelSpacing = 200;
+[pathNames, dirNames, fileNames] = dirwalk(sprintf('resultsLevel1_%dGHz', channelSpacing));
 
 fileNameList = {};
 resultLevel1 = struct();
@@ -25,9 +25,9 @@ for n = 1:length(fileNames)
         %         copyfile(fileNameList{i}, folderName)
         tmp = load(fileNameList{i});
         if i==1
-            resultLevel1 = tmp.resultAverage;
+            resultLevel1 = tmp.result;
         else
-            resultLevel1(i) = tmp.resultAverage;
+            resultLevel1(i) = tmp.result;
         end
         i = i+1;
     end
@@ -45,10 +45,12 @@ OOKSNRdB = min(resultLevel1.SNRdB(:, [1, 3, 5]), [], 2);
 results = [QAMSymbolRate, QAMPowerdBm, QAMSNRdB, OOKSNRdB];
 results = sortrows(results, [1, 2]);
 
-meshYpower = reshape(results(:, 2), 31, []);
-meshXsym = reshape(results(:, 1), 31, [])*1e-9;
-meshQAM = reshape(results(:, 3), 31, []);
-meshOOK = reshape(results(:, 4), 31, []);
+nRow = length(unique(QAMPowerdBm));
+
+meshYpower = reshape(results(:, 2), nRow, []);
+meshXsym = reshape(results(:, 1), nRow, [])*1e-9;
+meshQAM = reshape(results(:, 3), nRow, []);
+meshOOK = reshape(results(:, 4), nRow, []);
 
 %%
 figureFolder = sprintf('figures_%dGHz', channelSpacing);
@@ -57,69 +59,60 @@ if ~exist(figureFolder, 'dir')
 end
 
 %%
-fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshQAM, [14, 13, 12, 11, 10]);
+figure;
+[M, c] = contour(meshXsym, meshYpower, meshQAM, [15, 14, 13, 12]);
 c.LineWidth = 2;
-c.ShowText  = 'off';
-clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 360)
-set(gca, 'TickLabelInterpreter', 'latex')
-xlabel('QAM symbol rate (GBaud)', 'Interpreter', 'latex', 'fontsize', 12);
-ylabel('QAM power (dBm)', 'Interpreter', 'latex', 'fontsize', 12);
-grid on;
-pbaspect([8 4.5 1])
-fig.PaperPosition = [0 0 8 4.5];
+c.ShowText  = 'on';
+c.LabelSpacing = 180;
+xlabel('QAM symbol rate (GBaud)');
+ylabel('QAM power (dBm)');
+title('QAM SNR (OOK power=0dBm)')
 
 colormap(parula)
-% c = colorbar;
-% c.Label.String = 'SNR (dB)';
-caxis([9, 15]) % [min-(max-min)/3, max+(max-min)/3]
+c = colorbar;
+c.Label.String = 'SNR (dB)';
+caxis([11, 16]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpdf', '-r600', '-bestfit')
 
 %% 
-fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshOOK, [16, 18, 20, 22, 24]);
+figure;
+[M, c] = contour(meshXsym, meshYpower, meshOOK, [10, 14, 16, 17, 18]);
 c.LineWidth = 2;
-c.ShowText  = 'off';
-clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 600)
-set(gca, 'TickLabelInterpreter', 'latex')
-xlabel('QAM symbol rate (GBaud)', 'Interpreter', 'latex', 'fontsize', 12);
-ylabel('QAM power (dBm)', 'Interpreter', 'latex', 'fontsize', 12);
-grid on;
-pbaspect([8 4.5 1])
-fig.PaperPosition = [0 0 8 4.5];
+c.ShowText  = 'on';
+c.LabelSpacing = 180;
+xlabel('QAM symbol rate (GBaud)');
+ylabel('QAM power (dBm)');
+title('OOK SNR (OOK power=0dBm)')
 
 colormap(parula)
-% c = colorbar;
-% c.Label.String = 'SNR (dB)';
-caxis([12, 27]) % [min-(max-min)/3, max+(max-min)/3]
+c = colorbar;
+c.Label.String = 'SNR (dB)';
+caxis([8, 18]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('OOKSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('OOKSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
 print(fullfile(figureFolder, sprintf('OOKSNR_%dGHz', channelSpacing)), '-dpdf', '-r600', '-bestfit')
 
 %%
-OOKSNRth = 18;
-fig = figure;
+OOKSNRth = 14;
+figure;
 meshTemp = meshQAM;
 meshTemp(meshOOK<OOKSNRth) = 0;
-[M, c] = contour(meshXsym, meshYpower, meshTemp, [13, 12, 11, 10]);
+[M, c] = contour(meshXsym, meshYpower, meshTemp, [15, 14, 13, 12]);
 c.LineWidth = 2;
-c.ShowText  = 'off';
-clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 600)
-set(gca, 'TickLabelInterpreter', 'latex')
-xlabel('QAM symbol rate (GBaud)', 'Interpreter', 'latex', 'fontsize', 12);
-ylabel('QAM power (dBm)', 'Interpreter', 'latex', 'fontsize', 12);
-grid on;
-pbaspect([8 4.5 1])
-fig.PaperPosition = [0 0 8 4.5];
+c.ShowText  = 'on';
+c.LabelSpacing = 180;
+xlabel('QAM symbol rate (GBaud)');
+ylabel('QAM power (dBm)');
+title(sprintf('QAM SNR (OOK power=0dBm, OOK SNR>%ddB)', OOKSNRth))
 
 colormap(parula)
-% c = colorbar;
-% c.Label.String = 'SNR (dB)';
-caxis([9, 14]) % [min-(max-min)/3, max+(max-min)/3]
+c = colorbar;
+c.Label.String = 'SNR (dB)';
+caxis([11, 16]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz.fig', OOKSNRth, channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz', OOKSNRth, channelSpacing) ), '-dpng', '-r600')

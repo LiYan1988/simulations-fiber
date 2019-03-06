@@ -14,8 +14,11 @@ clear;
 % end
 
 channelSpacing = 100;
-[pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_powerOOK_0dBm_channelSpacing_%dGHz', channelSpacing));
+% [pathNames, dirNames, fileNames] = dirwalk(sprintf('resultLevel1_powerOOK_0dBm_channelSpacing_%dGHz', channelSpacing));
+[pathNames, dirNames, fileNames] = dirwalk('resultLevel1_powerOOK_0dBm_channelSpacing_100GHz_part1');
 
+
+%%
 fileNameList = {};
 resultLevel1 = struct();
 i = 1;
@@ -42,6 +45,12 @@ QAMSymbolRate = resultLevel1.symbolRate(:, 2);
 QAMPowerdBm = resultLevel1.powerdBm(:, 2);
 OOKSNRdB = min(resultLevel1.SNRdB(:, [1, 3, 5]), [], 2);
 
+% This is only for part1
+QAMSNRdB(end+1) = 9;
+QAMSymbolRate(end+1) = 117e9;
+QAMPowerdBm(end+1) = -17;
+OOKSNRdB(end+1) = 25.4;
+
 results = [QAMSymbolRate, QAMPowerdBm, QAMSNRdB, OOKSNRdB];
 results = sortrows(results, [1, 2]);
 
@@ -58,7 +67,7 @@ end
 
 %%
 fig = figure;
-[M, c] = contour(meshXsym, meshYpower, meshQAM, [14, 13, 12, 11, 10]);
+[M, c] = contour(meshXsym, meshYpower, meshQAM, [15, 14, 13, 12, 11, 10]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 360)
@@ -72,7 +81,7 @@ fig.PaperPosition = [0 0 8 4.5];
 colormap(parula)
 % c = colorbar;
 % c.Label.String = 'SNR (dB)';
-caxis([9, 15]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([9, 16]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
@@ -105,7 +114,7 @@ OOKSNRth = 18;
 fig = figure;
 meshTemp = meshQAM;
 meshTemp(meshOOK<OOKSNRth) = 0;
-[M, c] = contour(meshXsym, meshYpower, meshTemp, [13, 12, 11, 10]);
+[M, c] = contour(meshXsym, meshYpower, meshTemp, [15, 14, 13, 12, 11, 10]);
 c.LineWidth = 2;
 c.ShowText  = 'off';
 clabel(M,c,'Interpreter', 'latex', 'LabelSpacing', 600)
@@ -119,7 +128,7 @@ fig.PaperPosition = [0 0 8 4.5];
 colormap(parula)
 % c = colorbar;
 % c.Label.String = 'SNR (dB)';
-caxis([9, 14]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([9, 16]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz.fig', OOKSNRth, channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz', OOKSNRth, channelSpacing) ), '-dpng', '-r600')
