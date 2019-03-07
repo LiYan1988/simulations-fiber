@@ -148,7 +148,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             
             %% Calculate tmax
             % The time axis ranges from -tmax to tmax
-            [obj.tmax, generatedNumberSymbol] = computeTotalTime(obj);
+            [obj.tmax, generatedNumberSymbol] = computeTotalTimeTryNoFraction(obj);%computeTotalTime(obj);
             for n=1:obj.numberChannel
                 obj.channelArray(n).generatedNumberSymbol = ...
                     generatedNumberSymbol(n);
@@ -452,6 +452,55 @@ twin = max(symbolTime.*minNumberSymbol);
 % cut off as shown in the example above.
 generatedNumberSymbol = ceil(twin./symbolTime);
 tmax = twin/2;
+end
+
+function [tmax, generatedNumberSymbol] = computeTotalTimeTryNoFraction(obj)
+% Compute the total time span for simulation, try to make all channels have
+% integer number of symbols, eliminate fractional symbols
+% Inputs:
+%   obj: SinglePolarization object
+% Outputs:
+%   tmax: the single side time span of the simulation, the overall
+%       total time span is 2*tmax
+%   actualNumberSymbol: actual number of symbols when tmax is computed
+%
+% Note: try the best to eliminate fractional symbols. If is not possible or
+% requires too much resources (running time or RAM), it will roll back to
+% computeTotalTime.
+
+% This function is necessary only when there are multiple channels
+if obj.numberChannel<=1
+    [tmax, generatedNumberSymbol] = computeTotalTime(obj);
+    return
+end
+
+symbolRate = [obj.channelArray.symbolRate];
+commonDivisorFrequency = symbolRate(1);
+for i=2:obj.numberChannel
+    commonDivisorFrequency = gcd(commonDivisorFrequency, symbolRate(i));
+end
+
+% Symbol time [s]
+symbolTime = 1./[obj.channelArray.symbolRate];
+twin = 1/commonDivisorFrequency;
+minNumberSymbol = [obj.channelArray.minNumberSymbol];
+
+for i=1:obj.numberChannel
+    while(twin/symbolTime(i)<minNumberSymbol(i))
+        twin = twin*2;
+    end
+end
+
+generatedNumberSymbol = ceil(twin./symbolTime);
+tmax = twin/2;
+
+[tmax1, generatedNumberSymbol1] = computeTotalTime(obj);
+
+if tmax>tmax1*4
+    tmax = tmax1;
+    generatedNumberSymbol = generatedNumberSymbol1;
+end
+
 end
 
 function generateOOK(obj, channelIdx)
