@@ -49,7 +49,7 @@ end
 simulationName = sprintf('interleave_PQAM_%d_POOK_%d_symbolRate_%d_channelSpacing_%d', ...
     powerQAM, powerOOK, symbolRate/1e9, channelSpacing/1e9);
 
-simulationNumber = 1;
+simulationNumber = 4;
 i = 1;
 while(i<=simulationNumber)
     sp = SinglePolarization(...

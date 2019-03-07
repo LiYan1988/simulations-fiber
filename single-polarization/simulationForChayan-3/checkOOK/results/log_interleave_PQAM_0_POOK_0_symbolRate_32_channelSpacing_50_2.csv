@@ -1,0 +1,39 @@
+Time, activity
+07-Mar-2019 12:50:37, simulation starts
+07-Mar-2019 12:50:37, generate signals
+07-Mar-2019 12:50:39, simulate link 1
+07-Mar-2019 12:50:48, simulate link 2
+07-Mar-2019 12:50:58, simulate link 3
+07-Mar-2019 12:51:07, simulate link 4
+07-Mar-2019 12:51:15, simulate link 5
+07-Mar-2019 12:51:24, down conversion for channel 1
+07-Mar-2019 12:51:24, synchronize for channel 1
+07-Mar-2019 12:51:28, match signals for channel 1
+07-Mar-2019 12:51:28, find point cloud centers for channel 1
+07-Mar-2019 12:51:28, simulation finishes for channel 1
+07-Mar-2019 12:51:28, compute signal quality for channel 1
+07-Mar-2019 12:51:28, down conversion for channel 2
+07-Mar-2019 12:51:28, synchronize for channel 2
+07-Mar-2019 12:52:03, match signals for channel 2
+07-Mar-2019 12:52:03, find point cloud centers for channel 2
+07-Mar-2019 12:52:04, simulation finishes for channel 2
+07-Mar-2019 12:52:04, compute signal quality for channel 2
+07-Mar-2019 12:52:04, down conversion for channel 3
+07-Mar-2019 12:52:04, synchronize for channel 3
+07-Mar-2019 12:52:08, match signals for channel 3
+07-Mar-2019 12:52:08, find point cloud centers for channel 3
+07-Mar-2019 12:52:08, simulation finishes for channel 3
+07-Mar-2019 12:52:08, compute signal quality for channel 3
+07-Mar-2019 12:52:08, down conversion for channel 4
+07-Mar-2019 12:52:08, synchronize for channel 4
+07-Mar-2019 12:52:41, match signals for channel 4
+07-Mar-2019 12:52:41, find point cloud centers for channel 4
+07-Mar-2019 12:52:42, simulation finishes for channel 4
+07-Mar-2019 12:52:42, compute signal quality for channel 4
+07-Mar-2019 12:52:42, down conversion for channel 5
+07-Mar-2019 12:52:42, synchronize for channel 5
+07-Mar-2019 12:52:46, match signals for channel 5
+07-Mar-2019 12:52:46, find point cloud centers for channel 5
+07-Mar-2019 12:52:46, simulation finishes for channel 5
+07-Mar-2019 12:52:46, compute signal quality for channel 5
+07-Mar-2019 12:52:46, simulation finishes
