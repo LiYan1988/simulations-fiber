@@ -148,7 +148,7 @@ classdef SinglePolarization < matlab.mixin.Copyable
             
             %% Calculate tmax
             % The time axis ranges from -tmax to tmax
-            [obj.tmax, generatedNumberSymbol] = computeTotalTimeTryNoFraction(obj);%computeTotalTime(obj);
+            [obj.tmax, generatedNumberSymbol] = computeTotalTime(obj); % computeTotalTimeTryNoFraction(obj); % computeTotalTime(obj);
             for n=1:obj.numberChannel
                 obj.channelArray(n).generatedNumberSymbol = ...
                     generatedNumberSymbol(n);
@@ -496,7 +496,8 @@ tmax = twin/2;
 
 [tmax1, generatedNumberSymbol1] = computeTotalTime(obj);
 
-if tmax>tmax1*4
+% If this method takes too many 
+if tmax>tmax1*2
     tmax = tmax1;
     generatedNumberSymbol = generatedNumberSymbol1;
 end

@@ -27,8 +27,8 @@ powerOOK = [0];
 % channelSpacing = [50e9, 100e9, 150e9, 200e9];
 symbolRate = (1:1:60)*1e9;
 channelSpacing = [50e9];
-wallTime = [0, 20, 0, 0];
-cpuPerJob = 4;
+wallTime = [0, 10, 0, 0];
+cpuPerJob = 2;
 
 parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
 
@@ -56,7 +56,7 @@ end
 %% Prepare bash files
 for n = 1:length(variableArray)
     modifyBash(...
-        fullfile(pwd, 'simulateScenario_vera.sh'), ...
+        fullfile(pwd, 'simulateScenario.sh'), ...
         fullfile(folderName, sprintf('simulateScenario%d.sh', n)), ...
         sprintf('simulateScenario%d', n), ...
         wallTime, ...

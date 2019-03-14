@@ -28,7 +28,7 @@ powerOOK = [0];
 symbolRate = (1:1:60)*1e9;
 channelSpacing = [50e9];
 wallTime = [0, 10, 0, 0];
-cpuPerJob = 4;
+cpuPerJob = 2;
 
 parameterArray = combvec(powerQAM, powerOOK, symbolRate, channelSpacing);
 

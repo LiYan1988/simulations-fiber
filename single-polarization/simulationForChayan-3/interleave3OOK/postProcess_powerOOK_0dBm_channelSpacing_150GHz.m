@@ -172,6 +172,6 @@ colormap(parula)
 % c.Label.String = 'SNR (dB)';
 % caxis([12, 27]) % [min-(max-min)/3, max+(max-min)/3]
 
-savefig(fullfile(figureFolder, sprintf('QAMAIR_%dGHz.fig', channelSpacing)))
-print(fullfile(figureFolder, sprintf('QAMAIR_%dGHz', channelSpacing)), '-dpng', '-r600')
-print(fullfile(figureFolder, sprintf('QAMAIR_%dGHz', channelSpacing)), '-dpdf', '-r600', '-bestfit')
+savefig(fullfile(figureFolder, sprintf('QAMAIR_OOKAIR_greater_than_%dGbps_%dGHz.fig', OOKAIRth, channelSpacing)))
+print(fullfile(figureFolder, sprintf('QAMAIR_OOKAIR_greater_than_%dGbps_%dGHz', OOKAIRth, channelSpacing)), '-dpng', '-r600')
+print(fullfile(figureFolder, sprintf('QAMAIR_OOKAIR_greater_than_%dGbps_%dGHz', OOKAIRth, channelSpacing)), '-dpdf', '-r600', '-bestfit')
