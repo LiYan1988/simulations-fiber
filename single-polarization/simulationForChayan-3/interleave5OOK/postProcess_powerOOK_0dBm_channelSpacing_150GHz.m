@@ -76,7 +76,7 @@ fig.PaperPosition = [0 0 8 4.5];
 colormap(parula)
 % c = colorbar;
 % c.Label.String = 'SNR (dB)';
-caxis([9, 17]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([9, 15]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_%dGHz.fig', channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_%dGHz', channelSpacing)), '-dpng', '-r600')
@@ -123,7 +123,7 @@ fig.PaperPosition = [0 0 8 4.5];
 colormap(parula)
 % c = colorbar;
 % c.Label.String = 'SNR (dB)';
-caxis([9, 17]) % [min-(max-min)/3, max+(max-min)/3]
+caxis([9, 15]) % [min-(max-min)/3, max+(max-min)/3]
 
 savefig(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz.fig', OOKSNRth, channelSpacing)))
 print(fullfile(figureFolder, sprintf('QAMSNR_OOKSNR_greater_than_%ddB_%dGHz', OOKSNRth, channelSpacing) ), '-dpng', '-r600')
